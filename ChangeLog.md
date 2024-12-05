@@ -1,3 +1,8 @@
+# Unreleased
+
+## New Features
+- Workflow: add base functionality for workflows
+
 # v0.0.2
 
 ## New Features
