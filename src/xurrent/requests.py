@@ -27,8 +27,13 @@ class PredefinedFilter(str, Enum):
     problem_management_review = "problem_management_review"  # /requests/problem_management_review
     sla_accountability = "sla_accountability"  # /requests/sla_accountability
 
+class PredefinedNotesFilter(str, Enum):
+    public = "public"  # /requests/public
+    internal = "internal"  # /requests/internal
+
 
 T = TypeVar("T", bound="Request")  # Define the type variable
+
 
 class Request(JsonSerializableDict):
     #https://developer.4me.com/v1/requests/
@@ -106,7 +111,7 @@ class Request(JsonSerializableDict):
         return cls.from_data(connection_object, response)
 
     @classmethod
-    def get_request(cls, connection_object: XurrentApiHelper, predefinedFiler: PredefinedFilter = None,filter: dict = None) -> List[T]:
+    def get_request(cls, connection_object: XurrentApiHelper, predefinedFiler: PredefinedFilter = None,queryfilter: dict = None) -> List[T]:
         """
         Retrieve a request by its ID.
         :param connection_object: Instance of XurrentApiHelper
@@ -116,35 +121,25 @@ class Request(JsonSerializableDict):
         uri = f'{connection_object.base_url}/{cls.resourceUrl}'
         if predefinedFiler:
             uri += f'/{predefinedFiler}'
-        if filter:
-            uri += '?' + connection_object.create_filter_string(filter)
+        if queryfilter:
+            uri += '?' + connection_object.create_filter_string(queryfilter)
         response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, item) for item in response]
 
-    @staticmethod
-    def add_note_to_request(connection_object: XurrentApiHelper, id: int, note) -> dict:
-        """
-        Add a note to a request by its ID.
-        :param connection_object: Instance of XurrentApiHelper
-        :param id: ID of the request
-        :param note: Dictionary containing the note data
-        :return: Response from the API call
-        """
-        uri = f'{connection_object.base_url}/{Request.resourceUrl}/{id}/notes'
-        return connection_object.api_call(uri, 'POST', note)
-
-    def add_note_to_request(self, note: dict) -> dict:
+    def add_note(self, note: dict) -> dict:
         """
         Add a note to the current request instance.
         :param note: Dictionary containing the note data
         :return: Response from the API call (the note that was added)
         """
-        if not self.id:
-            raise ValueError("Request instance must have an ID to add a note.")
         uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/notes'
-        return self._connection_object.api_call(uri, 'POST', note)
+        if(isinstance(note, dict)):
+            return self._connection_object.api_call(uri, 'POST', note)
+        elif(isinstance(note, str)):
+            # this will post the note publically as the API User
+            return self._connection_object.api_call(uri, 'POST', {'text': note})
 
-    def get_notes(self, filter : dict = None) -> List[dict]:
+    def get_notes(self, predefinedFilter: PredefinedNotesFilter=None, queryfilter : dict = None) -> List[dict]:
         """
         Retrieve all notes associated with the current request instance.
         :return: List of notes
@@ -152,8 +147,10 @@ class Request(JsonSerializableDict):
         if not self.id:
             raise ValueError("Request instance must have an ID to get notes.")
         uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/notes'
-        if filter:
-            uri += '?' + self._connection_object.create_filter_string(filter)
+        if predefinedFilter:
+            uri += f'/{predefinedFilter}'
+        if queryfilter:
+            uri += '?' + self._connection_object.create_filter_string(queryfilter)
         return self._connection_object.api_call(uri, 'GET')
 
     def get_note_by_id(self, note_id) -> dict:
@@ -167,18 +164,6 @@ class Request(JsonSerializableDict):
         uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/notes/{note_id}'
         return self._connection_object.api_call(uri, 'GET')
 
-    @staticmethod
-    def get_notes(connection_object: XurrentApiHelper, request_id, note_id):
-        if not request_id:
-            raise ValueError("Must pass a request ID to get notes.")
-        uri = f'{connection_object.base_url}/{Request.resourceUrl}/{request_id}/notes/{note_id}'
-        return connection_object.api_call(uri, 'GET')
-
-    @classmethod
-    def update(cls : Type[T], connection_object: XurrentApiHelper, id, data) -> T:
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}'
-        response = connection_object.api_call(uri, 'PATCH', data)
-        return cls.from_data(connection_object, response)
 
     def update(self, data: dict):
         """
@@ -198,24 +183,31 @@ class Request(JsonSerializableDict):
         Close the current request instance.
         :return: Response from the API call
         """
-        if not self.id:
-            raise ValueError("Request instance must have an ID to close.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
-        response = self._connection_object.api_call(uri, 'POST', {'status': 'completed', 'completion_reason': completion_reason, 'note': note})
-        self.__update_object__(response)
-        return self
+        return self.update({'status': 'completed', 'completion_reason': completion_reason, 'note': note})
 
-    def close_and_trash(self):
+    def close_and_trash(self, note: str = "Closing and trashing request", completion_reason: CompletionReason = CompletionReason.solved):
         """
         Close and trash the current request instance.
         :return: Response from the API call
         """
         if not self.id:
             raise ValueError("Request instance must have an ID to close and trash.")
-        self.close()
+        self.close(note=note, completion_reason=CompletionReason.solved)
         return self.trash()
 
-    def trash(self, force=False):
+    def archive(self):
+        """
+        Archives the current request instance.
+        :return: Response from the API call
+        """
+        if not self.id:
+            raise ValueError("Request instance must have an ID to archive.")
+        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/archive'
+        response = self._connection_object.api_call(uri, 'POST')
+        self.__update_object__(response)
+        return self
+
+    def trash(self):
         """
         Trashes the current request instance.
 
@@ -225,15 +217,22 @@ class Request(JsonSerializableDict):
         if not self.id:
             raise ValueError("Request instance must have an ID to trash.")
         uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/trash'
-        try:
-            response = self._connection_object.api_call(uri, 'POST')
-            self.__update_object__(response)
-            return self
-        except Exception as e:
-            if force:
-                return self.close_and_trash()
-            else:
-                raise e
+        response = self._connection_object.api_call(uri, 'POST')
+        self.__update_object__(response)
+        return self
+
+    def restore(self):
+        """
+        Restores the current request instance.
+        :return: Response from the API call
+        """
+        if not self.id:
+            raise ValueError("Request instance must have an ID to restore.")
+        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/restore'
+        response = self._connection_object.api_call(uri, 'POST')
+        self.__update_object__(response)
+        return self
+    
 
     @classmethod
     def create(cls, connection_object: XurrentApiHelper, data: dict):

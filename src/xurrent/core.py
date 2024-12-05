@@ -170,6 +170,8 @@ class XurrentApiHelper:
         >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account')
         >>> helper.create_filter_string({'status': 'open', 'priority': 'high'})
         'status=open&priority=high'
+        >>> helper.create_filter_string({'status': 'open'})
+        'status=open'
         """
         filter_string = ''
         for key, value in filter.items():
