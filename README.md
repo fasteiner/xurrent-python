@@ -22,6 +22,10 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
     x_api_helper = XurrentApiHelper(baseUrl, apitoken, account)
 
+    # Plain API Call
+    uri = "/requests?subject=Example Subject"
+    connection_object.api_call(uri, 'GET')
+
 ```
 
 ### Requests
