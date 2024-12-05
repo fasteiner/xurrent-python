@@ -22,7 +22,3 @@ class Task():
         uri = f'{connection_object.base_url}/{Task.resourceUrl}/{id}'
         return connection_object.api_call(uri, 'PATCH', data)
 
-    @staticmethod
-    def delete(connection_object: XurrentApiHelper, id):
-        uri = f'{connection_object.base_url}/{Task.resourceUrl}/{id}'
-        return connection_object.api_call(uri, 'DELETE')
