@@ -2,6 +2,9 @@
 
 This module is used to interact with the Xurrent API. It provides a set of classes to interact with the API.
 
+## Change Log
+
+[ChangeLog.md](https://github.com/fasteiner/xurrent-python/blob/main/ChangeLog.md)
 
 ## Usage
 
