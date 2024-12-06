@@ -45,7 +45,7 @@ class XurrentApiHelper:
         :param uri: URI to append the parameter to
         :param per_page: Number of records per page
         :return: URI with the 'per_page' parameter appended
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', False)
         >>> helper._XurrentApiHelper__append_per_page('https://api.example.com/tasks')
         'https://api.example.com/tasks?per_page=100'
         >>> helper._XurrentApiHelper__append_per_page('https://api.example.com/tasks?status=open')
@@ -144,7 +144,7 @@ class XurrentApiHelper:
         :param custom_fields: List of custom fields
         :return: Dictionary containing the custom fields
 
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', False)
         >>> helper.custom_fields_to_object([{'id': 'priority', 'value': 'high'}, {'id': 'status', 'value': 'open'}])
         {'priority': 'high', 'status': 'open'}
         """
@@ -159,7 +159,7 @@ class XurrentApiHelper:
         :param obj: Dictionary to convert
         :return: List of custom fields
 
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', False)
         >>> helper.object_to_custom_fields({'priority': 'high', 'status': 'open'})
         [{'id': 'priority', 'value': 'high'}, {'id': 'status', 'value': 'open'}]
         """
@@ -173,7 +173,7 @@ class XurrentApiHelper:
         Create a filter string from a dictionary.
         :param filter: Dictionary containing the filter parameters
         :return: String containing the filter parameters
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', False)
         >>> helper.create_filter_string({'status': 'open', 'priority': 'high'})
         'status=open&priority=high'
         >>> helper.create_filter_string({'status': 'open'})
