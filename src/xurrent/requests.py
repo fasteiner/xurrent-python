@@ -111,7 +111,7 @@ class Request(JsonSerializableDict):
         return cls.from_data(connection_object, response)
 
     @classmethod
-    def get_request(cls, connection_object: XurrentApiHelper, predefinedFiler: PredefinedFilter = None,queryfilter: dict = None) -> List[T]:
+    def get_requests(cls, connection_object: XurrentApiHelper, predefinedFiler: PredefinedFilter = None,queryfilter: dict = None) -> List[T]:
         """
         Retrieve a request by its ID.
         :param connection_object: Instance of XurrentApiHelper
@@ -177,6 +177,18 @@ class Request(JsonSerializableDict):
         response = self._connection_object.api_call(uri, 'PATCH', data)
         self.__update_object__(response)
         return self
+
+    @staticmethod
+    def update_by_id(connection_object: XurrentApiHelper, id: int, data: dict) -> T:
+        """
+        Update a request by its ID.
+        :param connection_object: Instance of XurrentApiHelper
+        :param id: ID of the request to update
+        :param data: Dictionary containing updated data
+        :return: Response from the API call
+        """
+        request = Request(connection_object, id)
+        return request.update(data)
 
     def close(self, note: str, completion_reason: CompletionReason = CompletionReason.solved):
         """
