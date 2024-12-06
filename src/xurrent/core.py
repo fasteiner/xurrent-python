@@ -1,3 +1,4 @@
+from __future__ import annotations  # Needed for forward references
 import logging
 import requests
 import json
@@ -26,12 +27,16 @@ class JsonSerializableDict(dict):
 
 
 class XurrentApiHelper:
+    api_user: Person # Forward declaration with a string
 
     def __init__(self, base_url, api_key, api_account):
         self.base_url = base_url
         self.api_key = api_key
         self.api_account = api_account
         self.logger = logging.getLogger(__name__)
+        # Import Person lazily
+        from .people import Person
+        self.api_user = Person.get_me(self)
 
     def __append_per_page(self, uri, per_page=100):
         """

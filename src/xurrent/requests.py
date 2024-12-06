@@ -92,8 +92,8 @@ class Request(JsonSerializableDict):
     def from_data(cls, connection_object: XurrentApiHelper, data) -> T:
         if not isinstance(data, dict):
             raise TypeError(f"Expected 'data' to be a dictionary, got {type(data).__name__}")
-        if not 'id' in data:
-            data['id'] = id
+        if 'id' not in data:
+            raise ValueError("Data dictionary must contain an 'id' field.")
         return cls(connection_object, **data)
 
 

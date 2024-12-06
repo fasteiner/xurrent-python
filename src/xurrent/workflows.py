@@ -1,8 +1,29 @@
 from datetime import datetime
 from typing import Optional, List, Dict
 from .core import XurrentApiHelper
+from enum import Enum
 
-class PredefinedFilter(str, Enum):
+class WorkflowCompletionReason(str, Enum):
+    withdrawn = "withdrawn"  # Withdrawn - Withdrawn by Requester
+    rejected = "rejected"    # Rejected - Rejected by Approver
+    rolled_back = "rolled_back"  # Rolled Back - Original Environment Restored
+    failed = "failed"        # Failed - No Requirements Met
+    partial = "partial"      # Partial - Not All Requirements Met
+    disruptive = "disruptive"  # Disruptive - Caused Service Disruption
+    complete = "complete"    # Complete - All Requirements Met
+
+class WorkflowStatus(str, Enum):
+    being_created = "being_created"  # Being Created
+    registered = "registered"        # Registered
+    in_progress = "in_progress"      # In Progress
+    progress_halted = "progress_halted"  # Progress Halted
+    completed = "completed"          # Completed
+    # risk_and_impact = "risk_and_impact"  # Risk & Impact — deprecated: replaced by in_progress
+    # approval = "approval"            # Approval — deprecated: replaced by in_progress
+    # implementation = "implementation"  # Implementation — deprecated: replaced by in_progress
+
+
+class WorkflowPredefinedFilter(str, Enum):
     """
     Predefined filters for tasks.
     """
@@ -25,7 +46,7 @@ class Workflow:
                  **kwargs):
         self.id = id
         self._connection_object = connection_object
-        self.name = name
+        self.subject = subject
         self.status = status
         self.created_at = created_at
         self.updated_at = updated_at
@@ -34,7 +55,7 @@ class Workflow:
 
     def __str__(self) -> str:
         """Provide a human-readable string representation of the object."""
-        return (f"Workflow(id={self.id}, name={self.name}, status={self.status}, "
+        return (f"Workflow(id={self.id}, subject={self.subject}, status={self.status}, "
                 f"category={self.category}, impact={self.impact})")
 
     @classmethod
@@ -46,7 +67,7 @@ class Workflow:
         return cls(connection_object, **data)
 
     @classmethod
-    def get_by_id(connection_object: XurrentApiHelper, id: int) -> dict:
+    def get_by_id(cls, connection_object: XurrentApiHelper, id: int) -> dict:
         """
         Retrieve a workflow by its ID.
         """
@@ -61,12 +82,12 @@ class Workflow:
         uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}/tasks'
         return connection_object.api_call(uri, 'GET')
 
-    @staticmethod
-    def get_workflow_task_by_template_id(connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> dict:
+    @classmethod
+    def get_workflow_task_by_template_id(cls, connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> dict:
         """
         Retrieve a specific task associated with a workflow by template ID.
         """
-        uri = f'{connection_object.base_url}/{Workflow.resourceUrl}/{workflowID}/tasks?template={templateID}'
+        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{workflowID}/tasks?template={templateID}'
         tasks = connection_object.api_call(uri, 'GET')
         if not tasks:
             return None
@@ -101,6 +122,22 @@ class Workflow:
         uri = f'{connection_object.base_url}/{cls.resourceUrl}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
+
+    def close(self, note="closed.", completion_reason=WorkflowCompletionReason.complete):
+        """
+        Close the current workflow instance.
+        """
+        if not self.id:
+            raise ValueError("Workflow instance must have an ID to close.")
+        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        response = self._connection_object.api_call(uri, 'PATCH', {
+            'note': note,
+            'manager_id': self._connection_object.api_user.id,
+            'status': WorkflowStatus.completed,
+            'completion_reason': completion_reason
+            })
+        self.__update_object__(response)
+        return self
 
     def archive(self):
         """
