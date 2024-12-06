@@ -1,5 +1,12 @@
 # Change Log
 
+## v0.0.2.3
+
+### New Features
+
+- Task: add non static methods: get_workflow, close, approve, reject, cancel, create
+- Workflow: add non static methods: create_task
+
 ## v0.0.2.2
 
 ### New Features

@@ -147,6 +147,13 @@ class Workflow:
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
 
+    def create_task(self, data: dict):
+        """
+        Create a new task associated with the current workflow instance.
+        """
+        from .tasks import Task
+        return Task.create(self._connection_object, self.id, data)
+
     def close(self, note="closed.", completion_reason=WorkflowCompletionReason.complete):
         """
         Close the current workflow instance.
