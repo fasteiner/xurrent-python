@@ -1,7 +1,9 @@
-# Unreleased
+# v0.0.2.1
 
 ## New Features
 - Workflow: add base functionality for workflows
+- People: add base functionality for people
+- core: automatically get api user person object
 
 # v0.0.2
 
