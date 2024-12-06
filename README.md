@@ -2,6 +2,9 @@
 
 This module is used to interact with the Xurrent API. It provides a set of classes to interact with the API.
 
+## Change Log
+
+[ChangeLog.md](https://github.com/fasteiner/xurrent-python/blob/main/ChangeLog.md)
 
 ## Usage
 
@@ -18,6 +21,10 @@ This module is used to interact with the Xurrent API. It provides a set of class
     logger = setup_logger(verbose=True)
 
     x_api_helper = XurrentApiHelper(baseUrl, apitoken, account)
+
+    # Plain API Call
+    uri = "/requests?subject=Example Subject"
+    connection_object.api_call(uri, 'GET')
 
 ```
 
