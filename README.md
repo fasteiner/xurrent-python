@@ -29,6 +29,7 @@ This module is used to interact with the Xurrent API. It provides a set of class
 ```
 
 ### Requests
+
 ```python
     from xurrent.requests import Request
 
@@ -103,5 +104,20 @@ This module is used to interact with the Xurrent API. It provides a set of class
     tasks = Task.get_task(x_api_helper,queryfilter={
     "subject": "Example Subject"
     })
+
+    # get workflow of task (use expand: True to get the full workflow object)
+    workflow = task.get_workflow(expand=True)
+    # or statically
+    workflow = Task.get_workflow_by_template_id(x_api_helper, <id>, expand=True)
+
+    # close
+    task.close()
+    #cancel
+    task.cancel() # only possible before the task is started
+    #reject
+    task.reject()
+    #approve
+    task.approve()
+
 
 ```
