@@ -75,6 +75,23 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
 ```
 
+### Workflows
+
+```python
+
+    from xurrent.workflows import Workflow
+
+    workflow = Workflow.get_by_id(x_api_helper, <id>)
+
+    #close
+    workflow.close() # completion reason: completed, note: closed
+    # close with completion reason
+    workflow.close(completion_reason="withdrawn")
+    #close with completion reason and note
+    workflow.close(completion_reason="withdrawn", note="This is a test note")
+
+```
+
 ### Tasks
 
 ```python
