@@ -3,7 +3,7 @@
 ## New Features
 - Workflow: add base functionality for workflows
 - People: add base functionality for people
-- core: automatically get api user person object
+- core: automatically get api user person object (optional, default: True)
 
 # v0.0.2
 

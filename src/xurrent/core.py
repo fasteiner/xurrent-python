@@ -29,14 +29,15 @@ class JsonSerializableDict(dict):
 class XurrentApiHelper:
     api_user: Person # Forward declaration with a string
 
-    def __init__(self, base_url, api_key, api_account):
+    def __init__(self, base_url, api_key, api_account, resolve_user=True):
         self.base_url = base_url
         self.api_key = api_key
         self.api_account = api_account
         self.logger = logging.getLogger(__name__)
-        # Import Person lazily
-        from .people import Person
-        self.api_user = Person.get_me(self)
+        if resolve_user:
+            # Import Person lazily
+            from .people import Person
+            self.api_user = Person.get_me(self)
 
     def __append_per_page(self, uri, per_page=100):
         """
@@ -44,7 +45,7 @@ class XurrentApiHelper:
         :param uri: URI to append the parameter to
         :param per_page: Number of records per page
         :return: URI with the 'per_page' parameter appended
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account')
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
         >>> helper._XurrentApiHelper__append_per_page('https://api.example.com/tasks')
         'https://api.example.com/tasks?per_page=100'
         >>> helper._XurrentApiHelper__append_per_page('https://api.example.com/tasks?status=open')
@@ -143,7 +144,7 @@ class XurrentApiHelper:
         :param custom_fields: List of custom fields
         :return: Dictionary containing the custom fields
 
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account')
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
         >>> helper.custom_fields_to_object([{'id': 'priority', 'value': 'high'}, {'id': 'status', 'value': 'open'}])
         {'priority': 'high', 'status': 'open'}
         """
@@ -158,7 +159,7 @@ class XurrentApiHelper:
         :param obj: Dictionary to convert
         :return: List of custom fields
 
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account')
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
         >>> helper.object_to_custom_fields({'priority': 'high', 'status': 'open'})
         [{'id': 'priority', 'value': 'high'}, {'id': 'status', 'value': 'open'}]
         """
@@ -172,7 +173,7 @@ class XurrentApiHelper:
         Create a filter string from a dictionary.
         :param filter: Dictionary containing the filter parameters
         :return: String containing the filter parameters
-        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account')
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', false)
         >>> helper.create_filter_string({'status': 'open', 'priority': 'high'})
         'status=open&priority=high'
         >>> helper.create_filter_string({'status': 'open'})
