@@ -63,12 +63,9 @@ class Person():
         :param postfix: Postfix to add to the name
         :return: Updated person object
         """
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
-        response = self._connection_object.api_call(uri, 'PATCH', {
+        return self.update({
             'disabled': 'true',
             "name": f"{prefix}{self.name}{postfix}"
             })
-        self.__update_object__(response)
-        return self
 
     

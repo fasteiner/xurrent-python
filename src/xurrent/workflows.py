@@ -1,3 +1,4 @@
+from __future__ import annotations  # Needed for forward references
 from datetime import datetime
 from typing import Optional, List, Dict
 from .core import XurrentApiHelper
@@ -22,6 +23,15 @@ class WorkflowStatus(str, Enum):
     # approval = "approval"            # Approval — deprecated: replaced by in_progress
     # implementation = "implementation"  # Implementation — deprecated: replaced by in_progress
 
+    # Function to check if a value is a valid enum member
+    @classmethod
+    def is_valid_workflow_status(cls, value):
+        try:
+            cls[value]
+            return True
+        except KeyError:
+            return False
+
 
 class WorkflowPredefinedFilter(str, Enum):
     """
@@ -41,22 +51,19 @@ class Workflow:
                  id: int,
                  subject: Optional[str] = None,
                  status: Optional[str] = None,
-                 created_at: Optional[datetime] = None,
-                 updated_at: Optional[datetime] = None,
+                 manager: Optional[Dict] = None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
         self.status = status
-        self.created_at = created_at
-        self.updated_at = updated_at
+        self.manager = manager
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __str__(self) -> str:
         """Provide a human-readable string representation of the object."""
-        return (f"Workflow(id={self.id}, subject={self.subject}, status={self.status}, "
-                f"category={self.category}, impact={self.impact})")
+        return (f"Workflow(id={self.id}, subject={self.subject}, status={self.status}, manager={self.manager}")
 
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data: dict):
@@ -75,25 +82,40 @@ class Workflow:
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
-    def get_workflow_tasks_by_workflow_id(cls, connection_object: XurrentApiHelper, id: int) -> List[dict]:
+    def get_workflow_tasks_by_workflow_id(cls, connection_object: XurrentApiHelper, id: int, queryfilter: dict = None) -> List[Task]:
         """
         Retrieve all tasks associated with a workflow by its ID.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}/tasks'
-        return connection_object.api_call(uri, 'GET')
+        workflow = Workflow(connection_object, id)
+        return workflow.get_tasks(queryfilter=queryfilter)
+
+    def get_tasks(self, queryfilter: dict = None) -> List[Task]:
+        """
+        Retrieve all tasks associated with the current workflow instance.
+        """
+        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/tasks'
+        if queryfilter:
+            uri += '?' + self._connection_object.create_filter_string(queryfilter)
+        response = self._connection_object.api_call(uri, 'GET')
+        from .tasks import Task
+        return [Task.from_data(self._connection_object, task) for task in response]
 
     @classmethod
-    def get_workflow_task_by_template_id(cls, connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> dict:
+    def get_workflow_task_by_template_id(cls, connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> List[Task]:
         """
         Retrieve a specific task associated with a workflow by template ID.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{workflowID}/tasks?template={templateID}'
-        tasks = connection_object.api_call(uri, 'GET')
-        if not tasks:
-            return None
-        if len(tasks) > 1:
-            raise Exception(f"Multiple tasks found for templateID: {templateID}")
-        return tasks[0]
+        workflow = Workflow(connection_object, workflowID)
+        return workflow.get_task_by_template_id(templateID)
+    
+    def get_task_by_template_id(self, templateID: int) -> List[Task]:
+        """
+        Retrieve a specific task associated with the current workflow by template ID.
+        """
+        return self.get_tasks(queryfilter={
+            'template': templateID
+        })
+
 
     def update(self, data: dict):
         """
@@ -102,6 +124,8 @@ class Workflow:
         if not self.id:
             raise ValueError("Workflow instance must have an ID to update.")
         uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        if not WorkflowStatus.is_valid_workflow_status(data.get('status')):
+            raise ValueError(f"Invalid status: {data.get('status')}")
         response = self._connection_object.api_call(uri, 'PATCH', data)
         self.__update_object__(response)
         return self
