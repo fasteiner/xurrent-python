@@ -1,6 +1,6 @@
 from __future__ import annotations  # Needed for forward references
-import logging
 import requests
+import logging
 import json
 import re
 
@@ -56,11 +56,13 @@ class XurrentApiHelper:
         'https://api.example.com/tasks?per_page=100'
         >>> helper._XurrentApiHelper__append_per_page('https://api.example.com/tasks?per_page=50', 100)
         'https://api.example.com/tasks?per_page=50'
+        >>> helper._XurrentApiHelper__append_per_page('https://api.example.com/people/me', 100)
+        'https://api.example.com/people/me'
 
         """
         if '?' in uri and not 'per_page=' in uri:
             return f'{uri}&per_page={per_page}'
-        elif not re.search(r'\d$', uri) and not 'per_page=' in uri:
+        elif not re.search(r'\d$', uri) and not 'per_page=' in uri and not uri.endswith('me'):
             if uri.endswith('/'):
                 uri = uri[:-1]
             return f'{uri}?per_page={per_page}'

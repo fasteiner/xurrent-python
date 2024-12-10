@@ -1,5 +1,15 @@
 # Change Log
 
+## v0.0.2.8
+
+### Bug Fixes
+
+- Core: __append_per_page: exclude auto append for /me
+
+### Breaking Changes
+
+- Request: request.workflow is now a Workflow object instead of a dict --> request.workflow.id instead of request.workflow['id']
+
 ## v0.0.2.7
 
 ### Bug Fixes
