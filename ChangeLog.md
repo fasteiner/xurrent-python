@@ -1,5 +1,13 @@
 # Change Log
 
+## v0.0.2.4
+
+### New Features
+
+- People: add non static methods: enable, archive, trash, restore
+- People: add static methods: create, get_people
+- Workflows: add static methods: get_workflows
+
 ## v0.0.2.3
 
 ### New Features

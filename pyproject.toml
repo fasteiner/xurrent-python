@@ -1,6 +1,6 @@
 [project]
 name = "xurrent"
-version = "0.0.2.3"
+version = "0.0.2.4"
 authors = [
   { name="Fabian Steiner", email="fabian@stei-ner.net" },
 ]
