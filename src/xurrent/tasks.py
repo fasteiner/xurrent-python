@@ -98,7 +98,7 @@ class Task():
         return task.update(data)
 
     def update(self, data) -> T:
-        uri = f'{connection_object.base_url}/{Task.resourceUrl}/{id}'
+        uri = f'{self._connection_object.base_url}/{Task.resourceUrl}/{id}'
         response = self._connection_object.api_call(uri, 'PATCH', data)
         self.__update_object__(response)
         return self
