@@ -1,3 +1,4 @@
+from __future__ import annotations  # Needed for forward references
 from .core import XurrentApiHelper
 from .core import JsonSerializableDict
 from enum import Enum
@@ -56,6 +57,7 @@ class Request(JsonSerializableDict):
                  service_instance: Optional[Dict[str, str]] = None,
                  created_at: Optional[datetime] = None,
                  updated_at: Optional[datetime] = None,
+                 workflow: Optional[Workflow] = None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object  # Private attribute for connection object
@@ -73,6 +75,9 @@ class Request(JsonSerializableDict):
         self.service_instance = service_instance
         self.created_at = created_at
         self.updated_at = updated_at
+        if(workflow):
+            from .workflows import Workflow
+            self.workflow = Workflow.from_data(connection_object, workflow)
         # Initialize any additional attributes
         for key, value in kwargs.items():
             setattr(self, key, value)
