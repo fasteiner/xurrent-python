@@ -1,4 +1,4 @@
-from .core import XurrentApiHelper
+from .core import XurrentApiHelper, JsonSerializableDict
 from .workflows import Workflow
 from enum import Enum
 from typing import Optional, List, Dict, Type, TypeVar
@@ -30,7 +30,7 @@ class TaskStatus(str, Enum):
     canceled = "canceled"  # Canceled
 
 
-class Task():
+class Task(JsonSerializableDict):
     #https://developer.4me.com/v1/tasks/
     resourceUrl = 'tasks'
 
@@ -53,6 +53,12 @@ class Task():
         Return a string representation of the object.
         """
         return f"Task(id={self.id}, subject={self.subject}, workflow={self.workflow})"
+
+    def ref_str(self) -> str:
+        """
+        Return a string representation of the object.
+        """
+        return f"Task(id={self.id}, subject={self.subject})"
     
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data) -> T:

@@ -1,4 +1,5 @@
 from __future__ import annotations  # Needed for forward references
+from datetime import datetime
 import requests
 import logging
 import json
@@ -17,6 +18,11 @@ class JsonSerializableDict(dict):
                 # Recursively call to_dict on nested JsonSerializableDict objects
                 if isinstance(value, JsonSerializableDict):
                     result[key] = value.to_dict()
+                elif isinstance(value, list):
+                    #call to_dict on each item in the list
+                    result[key] = [item.to_dict() for item in value]
+                elif isinstance(value, datetime):
+                    result[key] = value.isoformat()
                 else:
                     result[key] = value
         return result

@@ -1,4 +1,5 @@
 {
+    "editor.wordWrap": "on",
     "python.testing.pytestArgs": [
         "tests"
     ],

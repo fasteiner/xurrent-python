@@ -1,6 +1,5 @@
 from __future__ import annotations  # Needed for forward references
-from .core import XurrentApiHelper
-from .core import JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict
 from enum import Enum
 from datetime import datetime
 from typing import Optional, List, Dict, Type, TypeVar
@@ -39,6 +38,11 @@ T = TypeVar("T", bound="Request")  # Define the type variable
 class Request(JsonSerializableDict):
     #https://developer.4me.com/v1/requests/
     resourceUrl = 'requests'
+    references = ['workflow', 'requested_by', 'requested_for', 'created_by', 'member']
+    workflow: Optional[Workflow]
+    requested_by: Optional[Person]
+    requested_for: Optional[Person]
+    created_by: Optional[Person]
 
     def __init__(self,
                  connection_object: XurrentApiHelper,
@@ -52,12 +56,15 @@ class Request(JsonSerializableDict):
                  next_target_at: Optional[datetime] = None,
                  completed_at: Optional[datetime] = None,
                  team: Optional[Dict[str, str]] = None,
-                 member: Optional[Dict[str, str]] = None,
+                 member: Optional[Person] = None,
                  grouped_into: Optional[int] = None,
                  service_instance: Optional[Dict[str, str]] = None,
                  created_at: Optional[datetime] = None,
                  updated_at: Optional[datetime] = None,
                  workflow: Optional[Workflow] = None,
+                 requested_by: Optional[Person] = None,
+                 requested_for: Optional[Person] = None,
+                 created_by: Optional[Person] = None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object  # Private attribute for connection object
@@ -70,28 +77,92 @@ class Request(JsonSerializableDict):
         self.next_target_at = next_target_at
         self.completed_at = completed_at
         self.team = team
-        self.member = member
         self.grouped_into = grouped_into
         self.service_instance = service_instance
         self.created_at = created_at
         self.updated_at = updated_at
-        if(workflow):
-            from .workflows import Workflow
-            self.workflow = Workflow.from_data(connection_object, workflow)
+        self.workflow = workflow
+        self.requested_by = requested_by
+        self.requested_for = requested_for
+        self.created_by = created_by
+        self.member = member   
         # Initialize any additional attributes
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __update_object__(self, data) -> None:
+        """
+        Update the current request instance with new data.
+
+        :param data: Dictionary containing updated data
+        """
         if data.get('id') != self.id:
             raise ValueError(f"ID mismatch: {self.id} != {data.get('id')}")
         for key, value in data.items():
+            if key in self.references:
+                continue
             setattr(self, key, value)
+        self.__update_references__(workflow=data.get('workflow'), requested_by=data.get('requested_by'), requested_for=data.get('requested_for'), created_by=data.get('created_by'), member=data.get('member'))
+
+    def __update_references__(self, workflow, requested_by, requested_for, created_by, member) -> None:
+        """
+        Update the references of the request object.
+
+        :param workflow: Workflow data
+        :param requested_by: Requested by person data
+        :param requested_for: Requested for person data
+        :param created_by: Created by person data
+        :param member: Member person data (who the request is assigned to)
+        """
+        if workflow:
+            from .workflows import Workflow
+            self.workflow = Workflow.from_data(self._connection_object, workflow)
+        else:
+            self.workflow = None
+        if member:
+            from .people import Person
+            self.member = Person.from_data(self._connection_object, member)
+        else:
+            self.member = None
+        if created_by:
+            from .people import Person
+            self.created_by = Person.from_data(self._connection_object, created_by)
+        else:
+            self.created_by = None
+        if requested_by:
+            from .people import Person
+            if created_by and created_by.get('id') != requested_by.get('id'):
+                self.requested_by = Person.from_data(self._connection_object, requested_by)
+            else:
+                self.requested_by = self.created_by
+        else:
+            self.requested_by = None
+            if self.created_by:
+                self.requested_by = self.created_by
+        if requested_for:
+            from .people import Person
+            if requested_by.get('id') != requested_for.get('id'):
+                self.requested_for = Person.from_data(self._connection_object, requested_for)
+            else:
+                self.requested_for = self.requested_by
+        else:
+            self.requested_for = None
+            if self.requested_by:
+                self.requested_for = self.requested_by
 
     def __str__(self) -> str:
         """Provide a human-readable string representation of the object."""
-        return (f"Request(id={self.id}, subject={self.subject}, category={self.category}, "
-                f"status={self.status}, impact={self.impact})")
+        output: str = f"Request(id={self.id}, subject={self.subject}, category={self.category}, status={self.status}, impact={self.impact}"
+        if(hasattr(self, 'created_by')):
+            output += f", created_by={self.created_by.ref_str()}"
+        if(hasattr(self, 'workflow')):
+            output += f", workflow={self.workflow.ref_str()}"
+        output += ")"
+        return output
+
+    def ref_str(self) -> str:
+        """Provide a human-readable string representation of the object."""
+        return f"Request(id={self.id}, subject={self.subject})"
 
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data) -> T:
@@ -113,7 +184,7 @@ class Request(JsonSerializableDict):
         """
         uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}'
         response = connection_object.api_call(uri, 'GET')
-        return cls.from_data(connection_object, response)
+        return cls.from_data(connection_object=connection_object, data=response)
 
     @classmethod
     def get_requests(cls, connection_object: XurrentApiHelper, predefinedFiler: PredefinedFilter = None,queryfilter: dict = None) -> List[T]:
@@ -195,7 +266,7 @@ class Request(JsonSerializableDict):
         request = Request(connection_object, id)
         return request.update(data)
 
-    def close(self, note: str, completion_reason: CompletionReason = CompletionReason.solved):
+    def close(self, note: str = "Request closed over API.", completion_reason: CompletionReason = CompletionReason.solved):
         """
         Close the current request instance.
         :return: Response from the API call

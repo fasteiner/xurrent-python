@@ -1,4 +1,4 @@
-from .core import XurrentApiHelper
+from .core import XurrentApiHelper, JsonSerializableDict
 from typing import Optional, List, Dict, Type, TypeVar
 
 from enum import Enum
@@ -14,7 +14,7 @@ class PeoplePredefinedFilter(str, Enum):
 
 T = TypeVar('T', bound='Person')
 
-class Person():
+class Person(JsonSerializableDict):
     #https://developer.4me.com/v1/people/
     resourceUrl = 'people'
 
@@ -37,6 +37,12 @@ class Person():
         Return a string representation of the object.
         """
         return f"Person(id={self.id}, name={self.name}, primary_email={self.primary_email})"
+
+    def ref_str(self) -> str:
+        """
+        Return a string representation of the object.
+        """
+        return f"Person(id={self.id}, name={self.name})"
 
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data) -> T:

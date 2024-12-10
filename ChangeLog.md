@@ -1,5 +1,21 @@
 # Change Log
 
+## v0.0.2.9
+
+### New Features
+
+- Request, Workflow, Task, Person: add non static methods: ref_str() --> return a reference string
+- core: JSONSerializableDict: handle datetime and list of objects
+
+### Bugfixes
+
+- Person, Workflow, Task: inherit JsonSerializableDict --> make serializable
+- Request: close: make it possible to close a without a note (using default note)
+
+### Breaking Changes
+
+- Request: request.created_by, request.requested_by, request.requested_for, request.member are now Person objects
+
 ## v0.0.2.8
 
 ### Bug Fixes

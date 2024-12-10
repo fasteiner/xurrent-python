@@ -1,7 +1,7 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
 from typing import Optional, List, Dict
-from .core import XurrentApiHelper
+from .core import XurrentApiHelper, JsonSerializableDict
 from enum import Enum
 
 class WorkflowCompletionReason(str, Enum):
@@ -42,7 +42,7 @@ class WorkflowPredefinedFilter(str, Enum):
     managed_by_me = 'managed_by_me' #/workflows/managed_by_me: List all workflows which manager is the API user
 
 
-class Workflow:
+class Workflow(JsonSerializableDict):
     # Endpoint for workflows
     resourceUrl = 'workflows'
 
@@ -64,6 +64,10 @@ class Workflow:
     def __str__(self) -> str:
         """Provide a human-readable string representation of the object."""
         return (f"Workflow(id={self.id}, subject={self.subject}, status={self.status}, manager={self.manager}")
+
+    def ref_str(self) -> str:
+        """Provide a human-readable string representation of the object."""
+        return (f"Workflow(id={self.id}, subject={self.subject})")
 
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data: dict):
