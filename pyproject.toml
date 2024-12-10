@@ -1,6 +1,6 @@
 [project]
 name = "xurrent"
-version = "0.0.2.3"
+version = "0.0.2.4"
 authors = [
   { name="Fabian Steiner", email="fabian@stei-ner.net" },
 ]
@@ -14,5 +14,5 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pypa/sampleproject"
-Issues = "https://github.com/pypa/sampleproject/issues"
+Homepage = "https://github.com/fasteiner/xurrent-python"
+Issues = "https://github.com/fasteiner/xurrent-python/issues"

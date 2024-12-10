@@ -82,6 +82,19 @@ class Workflow:
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
+    def get_workflows(cls, connection_object: XurrentApiHelper, predefinedFilter: WorkflowPredefinedFilter = None, queryfilter: dict = None) -> List[Workflow]:
+        """
+        Retrieve all workflows.
+        """
+        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        if predefinedFilter:
+            uri = f'{uri}/{predefinedFilter}'
+        if queryfilter:
+            uri += '?' + connection_object.create_filter_string(queryfilter)
+        response = connection_object.api_call(uri, 'GET')
+        return [cls.from_data(connection_object, workflow) for workflow in response]
+
+    @classmethod
     def get_workflow_tasks_by_workflow_id(cls, connection_object: XurrentApiHelper, id: int, queryfilter: dict = None) -> List[Task]:
         """
         Retrieve all tasks associated with a workflow by its ID.
