@@ -1,5 +1,11 @@
 # Change Log
 
+## v0.0.2.6
+
+### Bug Fixes
+
+- Task: Fix update method
+
 ## v0.0.2.5
 
 ### Bug Fixes
