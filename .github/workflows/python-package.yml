@@ -34,11 +34,11 @@ jobs:
         echo "DEMO_API_TOKEN=${{ secrets.DEMO_API_TOKEN }}" # Avoid printing sensitive secrets in real workflows
         echo "DEMO_APIACCOUNT=${{ vars.DEMO_APIACCOUNT }}"
         echo "DEMO_APIURL=${{ vars.DEMO_APIURL }}"
-    # - name: Install dependencies
-    #   run: |
-    #     python -m pip install --upgrade pip
-    #     python -m pip install flake8 pytest
-    #     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest python-dotenv
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       env:
         APITOKEN: ${{ secrets.DEMO_API_TOKEN }}
