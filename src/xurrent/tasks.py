@@ -43,7 +43,7 @@ class Task():
             setattr(self, key, value)
     
     def __update_object__(self, data) -> None:
-        if data.get('id') != self.id:
+        if int(data.get('id')) != int(self.id):
             raise ValueError(f"ID mismatch: {self.id} != {data.get('id')}")
         for key, value in data.items():
             setattr(self, key, value)

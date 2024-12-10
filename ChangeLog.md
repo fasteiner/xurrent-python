@@ -1,5 +1,11 @@
 # Change Log
 
+## v0.0.2.7
+
+### Bug Fixes
+
+- Task: `__update_object__` fixed
+
 ## v0.0.2.6
 
 ### Bug Fixes
