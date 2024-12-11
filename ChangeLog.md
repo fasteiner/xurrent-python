@@ -6,6 +6,8 @@
 
 - Request, Workflow, Task, Person: add non static methods: ref_str() --> return a reference string
 - core: JSONSerializableDict: handle datetime and list of objects
+- Workflow: add WorkflowCategory enum
+- Workflow: use WorkflowCategory and WorkflowStatus enums on instantiation
 
 ### Bugfixes
 
@@ -15,6 +17,7 @@
 ### Breaking Changes
 
 - Request: request.created_by, request.requested_by, request.requested_for, request.member are now Person objects
+- Workflow: workflow.manager is now a Person object
 
 ## v0.0.2.8
 

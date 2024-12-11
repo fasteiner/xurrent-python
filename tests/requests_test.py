@@ -114,7 +114,6 @@ def test_request_from_data(mock_connection):
     assert isinstance(request, Request)
     assert request.id == 1
     assert request.subject == "subject"
-    #TODO: Member, requested_by, requested_for, created_by, workflow are not being converted correctly
     assert isinstance(request.member, Person)
     assert request.member.name == "member"
     assert isinstance(request.requested_by, Person)
@@ -125,3 +124,4 @@ def test_request_from_data(mock_connection):
     assert request.created_by.name == "created_by"
     assert isinstance(request.workflow, Workflow)
     assert request.workflow.subject == "workflow"
+

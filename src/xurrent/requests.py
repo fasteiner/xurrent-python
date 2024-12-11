@@ -81,11 +81,15 @@ class Request(JsonSerializableDict):
         self.service_instance = service_instance
         self.created_at = created_at
         self.updated_at = updated_at
-        self.workflow = workflow
-        self.requested_by = requested_by
-        self.requested_for = requested_for
-        self.created_by = created_by
-        self.member = member   
+        from .workflows import Workflow
+        self.workflow = workflow if isinstance(workflow, Workflow) else Workflow.from_data(connection_object, workflow) if workflow else None
+        from .people import Person
+        self.member = member if isinstance(member, Person) else Person.from_data(connection_object, member) if member else None
+        self.requested_by = requested_by if isinstance(requested_by, Person) else Person.from_data(connection_object, requested_by) if requested_by else None
+        self.requested_for = requested_for if isinstance(requested_for, Person) else Person.from_data(connection_object, requested_for) if requested_for else None
+        self.created_by = created_by if isinstance(created_by, Person) else Person.from_data(connection_object, created_by) if created_by else None
+
+
         # Initialize any additional attributes
         for key, value in kwargs.items():
             setattr(self, key, value)

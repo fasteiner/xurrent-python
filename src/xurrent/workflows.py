@@ -32,6 +32,12 @@ class WorkflowStatus(str, Enum):
         except KeyError:
             return False
 
+class WorkflowCategory(str, Enum):
+    standard = "standard"  # Standard - Approved Workflow Template Was Used
+    non_standard = "non_standard"  # Non-Standard - Approved Workflow Template Not Available
+    emergency = "emergency"  # Emergency - Required for Incident Resolution
+    order = "order"  # Order - Organization Order Workflow
+
 
 class WorkflowPredefinedFilter(str, Enum):
     """
@@ -52,12 +58,15 @@ class Workflow(JsonSerializableDict):
                  subject: Optional[str] = None,
                  status: Optional[str] = None,
                  manager: Optional[Dict] = None,
+                 category: Optional[WorkflowCategory] = None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = status
-        self.manager = manager
+        self.status = WorkflowStatus(status) if status else None
+        self.category = WorkflowCategory(category) if category else None
+        from .people import Person
+        self.manager =  manager if isinstance(manager, Person) else Person.from_data(connection_object, manager) if manager else None
         for key, value in kwargs.items():
             setattr(self, key, value)
 
