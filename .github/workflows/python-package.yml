@@ -26,18 +26,18 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Set environment variables
       env:
-        DEMO_API_TOKEN: ${{ secrets.DEMO_API_TOKEN }}
-        DEMO_APIACCOUNT: ${{ vars.DEMO_APIACCOUNT }}
-        DEMO_APIURL: ${{ vars.DEMO_APIURL }}
+        API_TOKEN: ${{ secrets.DEMO_API_TOKEN }}
+        APIACCOUNT: ${{ vars.DEMO_APIACCOUNT }}
+        APIURL: ${{ vars.DEMO_APIURL }}
       run: |
         echo "Environment variables set:"
-        echo "DEMO_API_TOKEN=${{ secrets.DEMO_API_TOKEN }}" # Avoid printing sensitive secrets in real workflows
-        echo "DEMO_APIACCOUNT=${{ vars.DEMO_APIACCOUNT }}"
-        echo "DEMO_APIURL=${{ vars.DEMO_APIURL }}"
+        echo "APITOKEN=*******"
+        echo "APIACCOUNT=${{ vars.DEMO_APIACCOUNT }}"
+        echo "APIURL=${{ vars.DEMO_APIURL }}"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install flake8 pytest python-dotenv
+        python -m pip install flake8 pytest python-dotenv mock
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       env:

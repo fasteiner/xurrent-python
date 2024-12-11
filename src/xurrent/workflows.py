@@ -1,7 +1,7 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
 from typing import Optional, List, Dict
-from .core import XurrentApiHelper
+from .core import XurrentApiHelper, JsonSerializableDict
 from enum import Enum
 
 class WorkflowCompletionReason(str, Enum):
@@ -32,6 +32,12 @@ class WorkflowStatus(str, Enum):
         except KeyError:
             return False
 
+class WorkflowCategory(str, Enum):
+    standard = "standard"  # Standard - Approved Workflow Template Was Used
+    non_standard = "non_standard"  # Non-Standard - Approved Workflow Template Not Available
+    emergency = "emergency"  # Emergency - Required for Incident Resolution
+    order = "order"  # Order - Organization Order Workflow
+
 
 class WorkflowPredefinedFilter(str, Enum):
     """
@@ -42,9 +48,9 @@ class WorkflowPredefinedFilter(str, Enum):
     managed_by_me = 'managed_by_me' #/workflows/managed_by_me: List all workflows which manager is the API user
 
 
-class Workflow:
+class Workflow(JsonSerializableDict):
     # Endpoint for workflows
-    resourceUrl = 'workflows'
+    __resourceUrl__ = 'workflows'
 
     def __init__(self,
                  connection_object: XurrentApiHelper,
@@ -52,18 +58,25 @@ class Workflow:
                  subject: Optional[str] = None,
                  status: Optional[str] = None,
                  manager: Optional[Dict] = None,
+                 category: Optional[WorkflowCategory] = None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = status
-        self.manager = manager
+        self.status = WorkflowStatus(status) if status else None
+        self.category = WorkflowCategory(category) if category else None
+        from .people import Person
+        self.manager =  manager if isinstance(manager, Person) else Person.from_data(connection_object, manager) if manager else None
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __str__(self) -> str:
         """Provide a human-readable string representation of the object."""
         return (f"Workflow(id={self.id}, subject={self.subject}, status={self.status}, manager={self.manager}")
+
+    def ref_str(self) -> str:
+        """Provide a human-readable string representation of the object."""
+        return (f"Workflow(id={self.id}, subject={self.subject})")
 
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data: dict):
@@ -78,7 +91,7 @@ class Workflow:
         """
         Retrieve a workflow by its ID.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}/{id}'
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
@@ -86,7 +99,7 @@ class Workflow:
         """
         Retrieve all workflows.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
@@ -106,7 +119,7 @@ class Workflow:
         """
         Retrieve all tasks associated with the current workflow instance.
         """
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/tasks'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/tasks'
         if queryfilter:
             uri += '?' + self._connection_object.create_filter_string(queryfilter)
         response = self._connection_object.api_call(uri, 'GET')
@@ -136,12 +149,11 @@ class Workflow:
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to update.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         if not WorkflowStatus.is_valid_workflow_status(data.get('status')):
             raise ValueError(f"Invalid status: {data.get('status')}")
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     @staticmethod
     def update_by_id(connection_object: XurrentApiHelper, id: int, data: dict) -> dict:
@@ -156,7 +168,7 @@ class Workflow:
         """
         Create a new workflow.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
 
@@ -173,15 +185,14 @@ class Workflow:
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to close.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', {
             'note': note,
             'manager_id': self._connection_object.api_user.id,
             'status': WorkflowStatus.completed,
             'completion_reason': completion_reason
             })
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     def archive(self):
         """
@@ -189,10 +200,9 @@ class Workflow:
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to archive.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/archive'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/archive'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     def trash(self):
         """
@@ -200,10 +210,9 @@ class Workflow:
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to trash.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/trash'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/trash'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     def restore(self):
         """
@@ -211,16 +220,7 @@ class Workflow:
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to restore.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/restore'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/restore'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
-    def __update_object__(self, data):
-        """
-        Update the instance properties with new data.
-        """
-        if data.get('id') != self.id:
-            raise ValueError(f"ID mismatch: {self.id} != {data.get('id')}")
-        for key, value in data.items():
-            setattr(self, key, value)

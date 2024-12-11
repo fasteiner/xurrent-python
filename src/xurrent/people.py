@@ -1,4 +1,5 @@
-from .core import XurrentApiHelper
+from __future__ import annotations  # Needed for forward references
+from .core import XurrentApiHelper, JsonSerializableDict
 from typing import Optional, List, Dict, Type, TypeVar
 
 from enum import Enum
@@ -14,9 +15,9 @@ class PeoplePredefinedFilter(str, Enum):
 
 T = TypeVar('T', bound='Person')
 
-class Person():
+class Person(JsonSerializableDict):
     #https://developer.4me.com/v1/people/
-    resourceUrl = 'people'
+    __resourceUrl__ = 'people'
 
     def __init__(self, connection_object: XurrentApiHelper, id, name: str = None, primary_email: str = None,**kwargs):
         self._connection_object = connection_object
@@ -26,17 +27,17 @@ class Person():
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __update_object__(self, data) -> None:
-        if data.get('id') != self.id:
-            raise ValueError(f"ID mismatch: {self.id} != {data.get('id')}")
-        for key, value in data.items():
-            setattr(self, key, value)
-
     def __str__(self) -> str:
         """
         Return a string representation of the object.
         """
         return f"Person(id={self.id}, name={self.name}, primary_email={self.primary_email})"
+
+    def ref_str(self) -> str:
+        """
+        Return a string representation of the object.
+        """
+        return f"Person(id={self.id}, name={self.name})"
 
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data) -> T:
@@ -48,7 +49,7 @@ class Person():
 
     @classmethod
     def get_by_id(cls, connection_object: XurrentApiHelper, id):
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}/{id}'
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
@@ -56,24 +57,32 @@ class Person():
         """
         Retrieve the person object for the authenticated user.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/me'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}/me'
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
     def get_people(cls, connection_object: XurrentApiHelper, predefinedFilter: PeoplePredefinedFilter = None, queryfilter: dict = None) -> List[T]:
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
         response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, person) for person in response]
+    
+    def get_teams(self) -> List[Team]:
+        """
+        Retrieve the teams of the person.
+        """
+        from .teams import Team
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/teams'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Team.from_data(self._connection_object, team) for team in response]
         
     def update(self, data):
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        self.__update_object__(response)
-        return self
+        return People.from_data(self._connection_object,response)
     
     def disable(self, prefix: str = '', postfix: str = ''):
         """
@@ -104,28 +113,28 @@ class Person():
         :param connection_object: Xurrent Connection object
         :param data: Data dictionary (containing the data for the new person)
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         return cls.from_data(connection_object, connection_object.api_call(uri, 'POST', data))
 
     def archive(self):
         """
         Archive the person.
         """
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/archive'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/archive'
         return self._connection_object.api_call(uri, 'POST')
     
     def trash(self):
         """
         Trash the person.
         """
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/trash'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/trash'
         return self._connection_object.api_call(uri, 'POST')
 
     def restore(self):
         """
         Restore the person.
         """
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/restore'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/restore'
         return self._connection_object.api_call(uri, 'POST')
 
     
