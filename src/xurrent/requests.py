@@ -17,6 +17,9 @@ class RequestCategory(str, Enum):
     compliment = "compliment"  # Compliment - Request for Bestowal of Praise
     other = "other"  # Other - Request is Out of Scope
 
+    def __str__(self):
+        return self.value
+
 class RequestStatus(str, Enum):
     declined = "declined"  # Declined
     on_backlog = "on_backlog"  # On Backlog
