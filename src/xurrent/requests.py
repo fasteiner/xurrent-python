@@ -33,6 +33,9 @@ class RequestStatus(str, Enum):
     project_pending = "project_pending"  # Project Pending
     completed = "completed"  # Completed
 
+    def __str__(self):
+        return self.value
+
 class CompletionReason(str, Enum):
     solved = "solved"  # Solved - Root Cause Analysis Not Required
     workaround = "workaround"  # Workaround - Root Cause Not Removed
@@ -45,6 +48,9 @@ class CompletionReason(str, Enum):
     declined = "declined"  # Declined - Declined by Service Provider
     unsolvable = "unsolvable"  # Unsolvable - Unable to Solve
 
+    def __str__(self):
+        return self.value
+
 
 class PredefinedFilter(str, Enum):
     completed = "completed"  # /requests/completed
@@ -55,6 +61,9 @@ class PredefinedFilter(str, Enum):
     waiting_for_me = "waiting_for_me"  # /requests/waiting_for_me
     problem_management_review = "problem_management_review"  # /requests/problem_management_review
     sla_accountability = "sla_accountability"  # /requests/sla_accountability
+
+    def __str__(self):
+        return self.value
 
 class PredefinedNotesFilter(str, Enum):
     public = "public"  # /requests/public
