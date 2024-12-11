@@ -125,3 +125,20 @@ def test_request_from_data(mock_connection):
     assert isinstance(request.workflow, Workflow)
     assert request.workflow.subject == "workflow"
 
+def test_get_request_by_id(mock_connection):
+    resource_id = 123
+    subject = "Test subject"
+    mock_response = {'id': resource_id, 'subject': subject}
+    mock_connection.api_call.return_value = mock_response
+    
+    
+    # Act
+    result = Request.get_by_id(connection_object=mock_connection, id=resource_id)
+
+    # Assert
+    mock_connection.api_call.assert_called_once_with(
+        f"{mock_connection.base_url}/requests/{resource_id}", "GET"
+    )
+    assert isinstance(result, Request)  # Ensure the result is of type `Request`
+    assert result.id == resource_id  # Ensure the ID matches the expected value
+    assert result.subject == subject  # Ensure the subject matches the expected value
