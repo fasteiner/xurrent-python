@@ -50,7 +50,7 @@ class WorkflowPredefinedFilter(str, Enum):
 
 class Workflow(JsonSerializableDict):
     # Endpoint for workflows
-    resourceUrl = 'workflows'
+    __resourceUrl__ = 'workflows'
 
     def __init__(self,
                  connection_object: XurrentApiHelper,
@@ -91,7 +91,7 @@ class Workflow(JsonSerializableDict):
         """
         Retrieve a workflow by its ID.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}/{id}'
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
@@ -99,7 +99,7 @@ class Workflow(JsonSerializableDict):
         """
         Retrieve all workflows.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
@@ -119,7 +119,7 @@ class Workflow(JsonSerializableDict):
         """
         Retrieve all tasks associated with the current workflow instance.
         """
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/tasks'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/tasks'
         if queryfilter:
             uri += '?' + self._connection_object.create_filter_string(queryfilter)
         response = self._connection_object.api_call(uri, 'GET')
@@ -149,12 +149,11 @@ class Workflow(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to update.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         if not WorkflowStatus.is_valid_workflow_status(data.get('status')):
             raise ValueError(f"Invalid status: {data.get('status')}")
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     @staticmethod
     def update_by_id(connection_object: XurrentApiHelper, id: int, data: dict) -> dict:
@@ -169,7 +168,7 @@ class Workflow(JsonSerializableDict):
         """
         Create a new workflow.
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
 
@@ -186,15 +185,14 @@ class Workflow(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to close.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', {
             'note': note,
             'manager_id': self._connection_object.api_user.id,
             'status': WorkflowStatus.completed,
             'completion_reason': completion_reason
             })
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     def archive(self):
         """
@@ -202,10 +200,9 @@ class Workflow(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to archive.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/archive'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/archive'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     def trash(self):
         """
@@ -213,10 +210,9 @@ class Workflow(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to trash.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/trash'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/trash'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
     def restore(self):
         """
@@ -224,16 +220,7 @@ class Workflow(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Workflow instance must have an ID to restore.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/restore'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/restore'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Workflow.from_data(self._connection_object,response)
 
-    def __update_object__(self, data):
-        """
-        Update the instance properties with new data.
-        """
-        if data.get('id') != self.id:
-            raise ValueError(f"ID mismatch: {self.id} != {data.get('id')}")
-        for key, value in data.items():
-            setattr(self, key, value)

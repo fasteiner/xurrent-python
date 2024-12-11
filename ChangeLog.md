@@ -4,10 +4,16 @@
 
 ### New Features
 
-- Request, Workflow, Task, Person: add non static methods: ref_str() --> return a reference string
+- Request, Workflow, Task, Person, Team: add non static methods: ref_str() --> return a reference string
+- Request: add RequestCategory enum
 - core: JSONSerializableDict: handle datetime and list of objects
 - Workflow: add WorkflowCategory enum
 - Workflow: use WorkflowCategory and WorkflowStatus enums on instantiation
+- Team: add Team class
+- Team: add enum TeamPredefinedFilter
+- People: add non static methods: get_teams
+- Tests: add tests for Request
+- Tests: add pre-commit hooks yaml file
 
 ### Bugfixes
 

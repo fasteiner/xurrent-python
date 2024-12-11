@@ -34,6 +34,7 @@ class JsonSerializableDict(dict):
 
 class XurrentApiHelper:
     api_user: Person # Forward declaration with a string
+    api_user_teams: List[Team] # Forward declaration with a string
 
     def __init__(self, base_url, api_key, api_account, resolve_user=True):
         self.base_url = base_url
@@ -44,6 +45,7 @@ class XurrentApiHelper:
             # Import Person lazily
             from .people import Person
             self.api_user = Person.get_me(self)
+            self.api_user_teams = self.api_user.get_teams()
 
     def __append_per_page(self, uri, per_page=100):
         """

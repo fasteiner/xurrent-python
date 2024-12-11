@@ -1,8 +1,34 @@
 from __future__ import annotations  # Needed for forward references
 from .core import XurrentApiHelper, JsonSerializableDict
+from .people import Person
+from .teams import Team
 from enum import Enum
 from datetime import datetime
 from typing import Optional, List, Dict, Type, TypeVar
+
+class RequestCategory(str, Enum):
+    incident = "incident"  # Incident - Request for Incident Resolution
+    rfc = "rfc"  # RFC - Request for Change
+    rfi = "rfi"  # RFI - Request for Information
+    reservation = "reservation"  # Reservation - Request for Reservation
+    order = "order"  # Order - Request for Purchase
+    fulfillment = "fulfillment"  # Fulfillment - Request for Order Fulfillment
+    complaint = "complaint"  # Complaint - Request for Support Improvement
+    compliment = "compliment"  # Compliment - Request for Bestowal of Praise
+    other = "other"  # Other - Request is Out of Scope
+
+class RequestStatus(str, Enum):
+    declined = "declined"  # Declined
+    on_backlog = "on_backlog"  # On Backlog
+    assigned = "assigned"  # Assigned
+    accepted = "accepted"  # Accepted
+    in_progress = "in_progress"  # In Progress
+    waiting_for = "waiting_for"  # Waiting for…
+    waiting_for_customer = "waiting_for_customer"  # Waiting for Customer
+    reservation_pending = "reservation_pending"  # Reservation Pending
+    workflow_pending = "workflow_pending"  # Workflow Pending
+    project_pending = "project_pending"  # Project Pending
+    completed = "completed"  # Completed
 
 class CompletionReason(str, Enum):
     solved = "solved"  # Solved - Root Cause Analysis Not Required
@@ -37,12 +63,15 @@ T = TypeVar("T", bound="Request")  # Define the type variable
 
 class Request(JsonSerializableDict):
     #https://developer.4me.com/v1/requests/
-    resourceUrl = 'requests'
-    references = ['workflow', 'requested_by', 'requested_for', 'created_by', 'member']
+    __resourceUrl__ = 'requests'
+    __references__ = ['workflow', 'requested_by', 'requested_for', 'created_by', 'member', 'team']
     workflow: Optional[Workflow]
     requested_by: Optional[Person]
     requested_for: Optional[Person]
     created_by: Optional[Person]
+    category: Optional[RequestCategory]
+    status: Optional[RequestStatus]
+    team: Optional[Team]
 
     def __init__(self,
                  connection_object: XurrentApiHelper,
@@ -71,7 +100,7 @@ class Request(JsonSerializableDict):
         self.source = source
         self.sourceID = sourceID
         self.subject = subject
-        self.category = category
+        self.category = RequestCategory(category) if isinstance(category, str) else category if category else None
         self.impact = impact
         self.status = status
         self.next_target_at = next_target_at
@@ -88,78 +117,21 @@ class Request(JsonSerializableDict):
         self.requested_by = requested_by if isinstance(requested_by, Person) else Person.from_data(connection_object, requested_by) if requested_by else None
         self.requested_for = requested_for if isinstance(requested_for, Person) else Person.from_data(connection_object, requested_for) if requested_for else None
         self.created_by = created_by if isinstance(created_by, Person) else Person.from_data(connection_object, created_by) if created_by else None
+        self.team = team if isinstance(team, Team) else Team.from_data(connection_object, team) if team else None
 
 
         # Initialize any additional attributes
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __update_object__(self, data) -> None:
-        """
-        Update the current request instance with new data.
-
-        :param data: Dictionary containing updated data
-        """
-        if data.get('id') != self.id:
-            raise ValueError(f"ID mismatch: {self.id} != {data.get('id')}")
-        for key, value in data.items():
-            if key in self.references:
-                continue
-            setattr(self, key, value)
-        self.__update_references__(workflow=data.get('workflow'), requested_by=data.get('requested_by'), requested_for=data.get('requested_for'), created_by=data.get('created_by'), member=data.get('member'))
-
-    def __update_references__(self, workflow, requested_by, requested_for, created_by, member) -> None:
-        """
-        Update the references of the request object.
-
-        :param workflow: Workflow data
-        :param requested_by: Requested by person data
-        :param requested_for: Requested for person data
-        :param created_by: Created by person data
-        :param member: Member person data (who the request is assigned to)
-        """
-        if workflow:
-            from .workflows import Workflow
-            self.workflow = Workflow.from_data(self._connection_object, workflow)
-        else:
-            self.workflow = None
-        if member:
-            from .people import Person
-            self.member = Person.from_data(self._connection_object, member)
-        else:
-            self.member = None
-        if created_by:
-            from .people import Person
-            self.created_by = Person.from_data(self._connection_object, created_by)
-        else:
-            self.created_by = None
-        if requested_by:
-            from .people import Person
-            if created_by and created_by.get('id') != requested_by.get('id'):
-                self.requested_by = Person.from_data(self._connection_object, requested_by)
-            else:
-                self.requested_by = self.created_by
-        else:
-            self.requested_by = None
-            if self.created_by:
-                self.requested_by = self.created_by
-        if requested_for:
-            from .people import Person
-            if requested_by.get('id') != requested_for.get('id'):
-                self.requested_for = Person.from_data(self._connection_object, requested_for)
-            else:
-                self.requested_for = self.requested_by
-        else:
-            self.requested_for = None
-            if self.requested_by:
-                self.requested_for = self.requested_by
-
     def __str__(self) -> str:
         """Provide a human-readable string representation of the object."""
+        from .workflows import Workflow
+        from .people import Person
         output: str = f"Request(id={self.id}, subject={self.subject}, category={self.category}, status={self.status}, impact={self.impact}"
-        if(hasattr(self, 'created_by')):
+        if(hasattr(self, 'created_by') and isinstance(self.created_by, Person)):
             output += f", created_by={self.created_by.ref_str()}"
-        if(hasattr(self, 'workflow')):
+        if(hasattr(self, 'workflow') and isinstance(self.workflow, Workflow)):
             output += f", workflow={self.workflow.ref_str()}"
         output += ")"
         return output
@@ -186,7 +158,7 @@ class Request(JsonSerializableDict):
         :param id: ID of the request to retrieve
         :return: Instance of Request
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}/{id}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}/{id}'
         response = connection_object.api_call(uri, 'GET')
         return cls.from_data(connection_object=connection_object, data=response)
 
@@ -198,7 +170,7 @@ class Request(JsonSerializableDict):
         :param id: ID of the request to retrieve
         :return: Request data
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFiler:
             uri += f'/{predefinedFiler}'
         if queryfilter:
@@ -212,7 +184,7 @@ class Request(JsonSerializableDict):
         :param note: Dictionary containing the note data
         :return: Response from the API call (the note that was added)
         """
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/notes'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
         if(isinstance(note, dict)):
             return self._connection_object.api_call(uri, 'POST', note)
         elif(isinstance(note, str)):
@@ -226,7 +198,7 @@ class Request(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Request instance must have an ID to get notes.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/notes'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
         if predefinedFilter:
             uri += f'/{predefinedFilter}'
         if queryfilter:
@@ -241,8 +213,7 @@ class Request(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Request instance must have an ID to get notes.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/notes/{note_id}'
-        return self._connection_object.api_call(uri, 'GET')
+        return self.get_notes(queryfilter={'id': note_id})[0]
 
 
     def update(self, data: dict):
@@ -253,10 +224,16 @@ class Request(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Request instance must have an ID to update.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}'
+        # check if the category is valid
+        if data.get('category') and not isinstance(data.get('category'), RequestCategory):
+            data['category'] = RequestCategory(data.get('category'))
+        # check if the status is valid
+        if data.get('status') and not isinstance(data.get('status'), RequestStatus):
+            data['status'] = RequestStatus(data.get('status'))
+
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        self.__update_object__(response)
-        return self
+        return Request.from_data(self._connection_object,response)
 
     @staticmethod
     def update_by_id(connection_object: XurrentApiHelper, id: int, data: dict) -> T:
@@ -270,12 +247,20 @@ class Request(JsonSerializableDict):
         request = Request(connection_object, id)
         return request.update(data)
 
-    def close(self, note: str = "Request closed over API.", completion_reason: CompletionReason = CompletionReason.solved):
+    def close(self, note: str = "Request closed over API.", completion_reason: CompletionReason = CompletionReason.solved, member_id: int = None, team_id: int = None):
         """
         Close the current request instance.
         :return: Response from the API call
         """
-        return self.update({'status': 'completed', 'completion_reason': completion_reason, 'note': note})
+        if not member_id:
+            member_id = self._connection_object.api_user.id
+            if not member_id:
+                raise ValueError("Member ID must be provided to close the request.")
+        if not team_id:
+            team_id = self._connection_object.api_user_teams[0].id
+            if not team_id:
+                raise ValueError("Team ID must be provided to close the request.")
+        return self.update({'status': 'completed', 'completion_reason': completion_reason, 'note': note, "member_id": member_id, 'team_id': team_id})
 
     def close_and_trash(self, note: str = "Closing and trashing request", completion_reason: CompletionReason = CompletionReason.solved):
         """
@@ -294,10 +279,9 @@ class Request(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Request instance must have an ID to archive.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/archive'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/archive'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Request.from_data(self._connection_object,response)
 
     def trash(self):
         """
@@ -308,10 +292,9 @@ class Request(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Request instance must have an ID to trash.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/trash'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/trash'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Request.from_data(self._connection_object,response)
 
     def restore(self):
         """
@@ -320,10 +303,9 @@ class Request(JsonSerializableDict):
         """
         if not self.id:
             raise ValueError("Request instance must have an ID to restore.")
-        uri = f'{self._connection_object.base_url}/{self.resourceUrl}/{self.id}/restore'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/restore'
         response = self._connection_object.api_call(uri, 'POST')
-        self.__update_object__(response)
-        return self
+        return Request.from_data(self._connection_object,response)
     
 
     @classmethod
@@ -334,6 +316,6 @@ class Request(JsonSerializableDict):
         :param data: Dictionary containing request data
         :return: Instance of Request
         """
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)

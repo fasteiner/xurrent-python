@@ -32,7 +32,7 @@ class TaskStatus(str, Enum):
 
 class Task(JsonSerializableDict):
     #https://developer.4me.com/v1/tasks/
-    resourceUrl = 'tasks'
+    __resourceUrl__ = 'tasks'
 
     def __init__(self, connection_object: XurrentApiHelper, id, subject: str = None, workflow: dict = None,description: str = None, **kwargs):
         self._connection_object = connection_object
@@ -40,12 +40,6 @@ class Task(JsonSerializableDict):
         self.subject = subject
         self.workflow = workflow
         for key, value in kwargs.items():
-            setattr(self, key, value)
-    
-    def __update_object__(self, data) -> None:
-        if int(data.get('id')) != int(self.id):
-            raise ValueError(f"ID mismatch: {self.id} != {data.get('id')}")
-        for key, value in data.items():
             setattr(self, key, value)
 
     def __str__(self) -> str:
@@ -70,12 +64,12 @@ class Task(JsonSerializableDict):
 
     @classmethod
     def get_by_id(cls, connection_object: XurrentApiHelper, id) -> T:
-        uri = f'{connection_object.base_url}/{Task.resourceUrl}/{id}'
+        uri = f'{connection_object.base_url}/{Task.__resourceUrl__}/{id}'
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
     def get_tasks(cls, connection_object: XurrentApiHelper, predefinedFilter: TaskPredefinedFilter = None, queryfilter: dict = None) -> List[T]:
-        uri = f'{connection_object.base_url}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
@@ -104,10 +98,9 @@ class Task(JsonSerializableDict):
         return task.update(data)
 
     def update(self, data) -> T:
-        uri = f'{self._connection_object.base_url}/{Task.resourceUrl}/{self.id}'
+        uri = f'{self._connection_object.base_url}/{Task.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        self.__update_object__(response)
-        return self
+        return Task.from_data(self._connection_object,response)
 
     def close(self, note: str = None, member_id: int = None) -> T:
         """
@@ -176,6 +169,6 @@ class Task(JsonSerializableDict):
         :param workflowID: ID of the workflow to create the task in
         :param data: Data to create the task with
         """
-        uri = f'{connection_object.base_url}/workflows/{workflowID}/{cls.resourceUrl}'
+        uri = f'{connection_object.base_url}/workflows/{workflowID}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
