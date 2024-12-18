@@ -22,9 +22,10 @@ This module is used to interact with the Xurrent API. It provides a set of class
     baseUrl = "https://api.4me.qa/v1"
     account = "account-name"
 
-    logger = setup_logger(verbose=True)
-
     x_api_helper = XurrentApiHelper(baseUrl, apitoken, account)
+
+    # change log level (default: INFO)
+    x_api_helper.set_log_level("DEBUG")
 
     # Plain API Call
     uri = "/requests?subject=Example Subject"

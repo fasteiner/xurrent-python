@@ -1,5 +1,16 @@
 # Change Log
 
+## v0.0.2.10
+
+### New Features
+
+- Core: add enum LogLevel
+- Core: add method set_log_level to change the log level
+
+### Breaking Changes
+
+- Core: init: parameter for logger has been added, if not provided, a new logger will be created
+
 ## v0.0.2.9
 
 ### New Features
