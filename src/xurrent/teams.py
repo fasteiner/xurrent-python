@@ -11,6 +11,7 @@ class TeamPredefinedFilter(str, Enum):
 T = TypeVar('T', bound='Team')
 
 class Team(JsonSerializableDict):
+    #https://developer.xurrent.com/v1/teams/
     __resourceUrl__ = 'teams'
 
     def __init__(self, connection_object: XurrentApiHelper, id, name: str = None, description: str = None, **kwargs):

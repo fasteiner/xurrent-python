@@ -31,7 +31,7 @@ class TaskStatus(str, Enum):
 
 
 class Task(JsonSerializableDict):
-    #https://developer.4me.com/v1/tasks/
+    #https://developer.xurrent.com/v1/tasks/
     __resourceUrl__ = 'tasks'
 
     def __init__(self, connection_object: XurrentApiHelper, id, subject: str = None, workflow: dict = None,description: str = None, **kwargs):

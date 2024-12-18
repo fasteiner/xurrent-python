@@ -19,7 +19,7 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
     apitoken = "********"
 
-    baseUrl = "https://api.4me.qa/v1"
+    baseUrl = "https://api.xurrent.qa/v1"
     account = "account-name"
 
     x_api_helper = XurrentApiHelper(baseUrl, apitoken, account)

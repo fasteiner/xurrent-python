@@ -74,7 +74,7 @@ T = TypeVar("T", bound="Request")  # Define the type variable
 
 
 class Request(JsonSerializableDict):
-    #https://developer.4me.com/v1/requests/
+    #https://developer.xurrent.com/v1/requests/
     __resourceUrl__ = 'requests'
     __references__ = ['workflow', 'requested_by', 'requested_for', 'created_by', 'member', 'team']
     workflow: Optional[Workflow]
