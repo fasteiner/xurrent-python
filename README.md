@@ -22,9 +22,10 @@ This module is used to interact with the Xurrent API. It provides a set of class
     baseUrl = "https://api.4me.qa/v1"
     account = "account-name"
 
-    logger = setup_logger(verbose=True)
-
     x_api_helper = XurrentApiHelper(baseUrl, apitoken, account)
+
+    # change log level (default: INFO)
+    x_api_helper.set_log_level("DEBUG")
 
     # Plain API Call
     uri = "/requests?subject=Example Subject"
@@ -32,7 +33,35 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
 ```
 
-### Requests
+#### People
+
+```python
+    from xurrent.people import Person
+
+    people = Person.get_by_id(x_api_helper, <id>)
+
+    api_user = Person.get_me(x_api_helper)
+
+    # get all people with a specific subject
+    people = Person.get_people(x_api_helper,queryfilter={
+    "name": "Werner"
+    })
+
+    # enable
+    people.enable()
+
+    #disable
+    people.disable()
+    #archive
+    people.archive()
+    #trash
+    people.trash()
+    #restore
+    people.restore()
+
+```
+
+#### Requests
 
 ```python
     from xurrent.requests import Request
@@ -60,7 +89,7 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
 ```
 
-#### Request Notes
+##### Request Notes
 
 ```python
     from xurrent.requests import Request
@@ -80,24 +109,7 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
 ```
 
-### Workflows
-
-```python
-
-    from xurrent.workflows import Workflow
-
-    workflow = Workflow.get_by_id(x_api_helper, <id>)
-
-    #close
-    workflow.close() # completion reason: completed, note: closed
-    # close with completion reason
-    workflow.close(completion_reason="withdrawn")
-    #close with completion reason and note
-    workflow.close(completion_reason="withdrawn", note="This is a test note")
-
-```
-
-### Tasks
+#### Tasks
 
 ```python
     from xurrent.tasks import Task
@@ -123,5 +135,46 @@ This module is used to interact with the Xurrent API. It provides a set of class
     #approve
     task.approve()
 
+
+```
+
+#### Teams
+
+```python
+    from xurrent.teams import Team
+
+    team = Team.get_by_id(x_api_helper, <id>)
+
+    # get all teams with a specific subject
+    teams = Team.get_team(x_api_helper,predifinedFilter="enabled")
+
+    # enable
+    team.enable()
+
+    #disable
+    team.disable()
+    #archive
+    team.archive()
+    #trash
+    team.trash()
+    #restore
+    team.restore()
+
+```
+
+#### Workflows
+
+```python
+
+    from xurrent.workflows import Workflow
+
+    workflow = Workflow.get_by_id(x_api_helper, <id>)
+
+    #close
+    workflow.close() # completion reason: completed, note: closed
+    # close with completion reason
+    workflow.close(completion_reason="withdrawn")
+    #close with completion reason and note
+    workflow.close(completion_reason="withdrawn", note="This is a test note")
 
 ```

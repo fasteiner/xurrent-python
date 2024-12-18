@@ -2,6 +2,7 @@ import pytest
 import os
 import sys
 from dotenv import load_dotenv
+import logging
 
 # Add the `../src` directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
@@ -46,5 +47,13 @@ def test_api_helper_setup(x_api_helper):
     assert isinstance(x_api_helper.api_user_teams, list)
     for team in x_api_helper.api_user_teams:
         assert isinstance(team, Team)
+
+    assert x_api_helper.logger.level == logging.INFO
+
+def test_set_log_level(x_api_helper):
+    x_api_helper.set_log_level("DEBUG")
+    assert x_api_helper.logger.level == logging.DEBUG
+    x_api_helper.set_log_level(logging.WARNING)
+    assert x_api_helper.logger.level == logging.WARNING
     
     

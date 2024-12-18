@@ -1,10 +1,18 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
+from enum import Enum
 import time
 import requests
 import logging
 import json
 import re
+
+class LogLevel(Enum):
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARNING = logging.WARNING
+    ERROR = logging.ERROR
+    CRITICAL = logging.CRITICAL
 
 class JsonSerializableDict(dict):
     def __init__(self, **kwargs):
@@ -37,11 +45,23 @@ class XurrentApiHelper:
     api_user: Person # Forward declaration with a string
     api_user_teams: List[Team] # Forward declaration with a string
 
-    def __init__(self, base_url, api_key, api_account, resolve_user=True):
+    def __init__(self, base_url, api_key, api_account,resolve_user=True, logger: Logger=None):
+        """
+        Initialize the Xurrent API helper.
+
+        :param base_url: Base URL of the Xurrent API
+        :param api_key: API key to authenticate with
+        :param api_account: Account name to use
+        :param resolve_user: Resolve the API user and their teams (default: True)
+        :param logger: Logger to use (optional), otherwise a new logger is created
+        """
         self.base_url = base_url
         self.api_key = api_key
         self.api_account = api_account
-        self.logger = logging.getLogger(__name__)
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = self.create_logger(False)
         if resolve_user:
             # Import Person lazily
             from .people import Person
@@ -76,6 +96,37 @@ class XurrentApiHelper:
                 uri = uri[:-1]
             return f'{uri}?per_page={per_page}'
         return uri
+
+    def create_logger(self, verbose) -> Logger:
+        """
+        Create a logger for the API helper.
+        :param verbose: Enable verbose logging (debug level)
+        :return: Logger instance
+        """
+        logger = logging.getLogger()
+        log_stream = logging.StreamHandler()
+
+        if verbose:
+            logger.setLevel(logging.DEBUG)
+            log_stream.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
+            log_stream.setLevel(logging.INFO)
+
+        formatter = logging.Formatter('%(levelname)s - %(message)s')
+        log_stream.setFormatter(formatter)
+        logger.addHandler(log_stream)
+        return logger
+
+    def set_log_level(self, level: LogLevel):
+        """
+        Set the log level for the logger and all handlers.
+
+        :param level: Log level to set
+        """
+        self.logger.setLevel(level)
+        for handler in self.logger.handlers:
+            handler.setLevel(level)
 
 
     def api_call(self, uri: str, method='GET', data=None, per_page=100):
