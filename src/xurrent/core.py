@@ -6,6 +6,7 @@ import requests
 import logging
 import json
 import re
+import base64
 
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
@@ -245,3 +246,29 @@ class XurrentApiHelper:
         for key, value in filter.items():
             filter_string += f'{key}={value}&'
         return filter_string[:-1]
+
+    def decode_api_id(self, id: str):
+        """
+        API resource IDs are base64-encoded strings with the padding bytes stripped off.
+        Ensure approproate padding and decode.
+        :param id: Encoded Xurrent resource ID
+        :return: String containing the decoded ID
+        >>> helper.decode_api_id('SGVsbG8sIHdvcmxkIQ')
+        'Hello, world!'
+        """
+        #Get the length remainder of 4, fill the remainder to be a power of 4, but only if it is not already 4
+        padding_count = (4 - (len(id) % 4)) % 4
+        padding = "=" * padding_count
+        value = id + padding
+        return base64.decodebytes(value.encode()).decode()
+
+    def encode_api_id(self, id: str):
+        """
+        API resource IDs are base64-encoded strings with the padding bytes stripped off.
+        Encode and strip padding.
+        :param id: Xurrent resource ID to encode
+        :return: String containing the encoded ID
+        >>> helper.encode_api_id('Hello, world!')
+        'SGVsbG8sIHdvcmxkIQ'
+        """
+        return base64.encodebytes(id.encode()).decode().strip().rstrip("=")
