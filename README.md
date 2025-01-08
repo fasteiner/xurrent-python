@@ -31,6 +31,10 @@ This module is used to interact with the Xurrent API. It provides a set of class
     uri = "/requests?subject=Example Subject"
     connection_object.api_call(uri, 'GET')
 
+    # Convert node ID
+    helper.decode_api_id('ZmFiaWFuc3RlaW5lci4yNDEyMTAxMDE0MTJANG1lLWRlbW8uY29tL1JlcS83MDU3NTU') # fabiansteiner.241210101412@4me-demo.com/Req/705755
+    # this can be used to derive the ID from the nodeID
+
 ```
 
 #### People
