@@ -253,6 +253,7 @@ class XurrentApiHelper:
         Ensure approproate padding and decode.
         :param id: Encoded Xurrent resource ID
         :return: String containing the decoded ID
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', False)
         >>> helper.decode_api_id('SGVsbG8sIHdvcmxkIQ')
         'Hello, world!'
         """
@@ -268,6 +269,7 @@ class XurrentApiHelper:
         Encode and strip padding.
         :param id: Xurrent resource ID to encode
         :return: String containing the encoded ID
+        >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', False)
         >>> helper.encode_api_id('Hello, world!')
         'SGVsbG8sIHdvcmxkIQ'
         """
