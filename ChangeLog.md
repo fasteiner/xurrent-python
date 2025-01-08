@@ -1,5 +1,11 @@
 # Change Log
 
+## v0.0.2.11
+
+### New Features
+
+- Core: add function decode_api_id and encode_api_id to convert between nodeID and normal ID
+
 ## v0.0.2.10
 
 ### New Features
