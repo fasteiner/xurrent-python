@@ -164,6 +164,9 @@ class XurrentApiHelper:
                 # Make the HTTP request
                 response = requests.request(method, next_page_url, headers=headers, json=data)
 
+                if response.status_code == 204:
+                    return None
+
                 # Handle rate limiting (429 status code)
                 if response.status_code == 429:
                     retry_after = int(response.headers.get('Retry-After', 1))  # Default to 1 second if not provided
@@ -189,6 +192,8 @@ class XurrentApiHelper:
                         links = {rel.strip(): url.strip('<>') for url, rel in
                                 (link.split(';') for link in link_header.split(','))}
                         next_page_url = links.get('rel="next"')
+                        if next_page_url:
+                            next_page_url = next_page_url.replace('<', '').replace('>', '')
                     else:
                         next_page_url = None
                 else:

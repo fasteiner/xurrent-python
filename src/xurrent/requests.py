@@ -331,3 +331,96 @@ class Request(JsonSerializableDict):
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
+
+    # the following methods are for managing configuration items associated with requests
+    # Developer Documentation: https://developer.xurrent.com/v1/requests/cis
+
+    @classmethod
+    def get_cis_by_request_id(cls, connection_object: XurrentApiHelper, request_id: int) -> List[ConfigurationItem]:
+        """
+        Retrieve configuration items associated with a request.
+
+        :param connection_object: Xurrent API connection object
+        :param request_id: ID of the request
+        :return: List of ConfigurationItem objects
+        """
+        from .configuration_items import ConfigurationItem 
+        uri = f'{connection_object.base_url}/requests/{request_id}/cis'
+        response = connection_object.api_call(uri, 'GET')
+        return [ConfigurationItem.from_data(connection_object, ci) for ci in response]
+
+    @classmethod
+    def add_ci_to_request_by_id(cls, connection_object: XurrentApiHelper, request_id: int, ci_id: int) -> bool:
+        """
+        Link configuration items to a request.
+
+        :param connection_object: Xurrent API connection object
+        :param request_id: ID of the request
+        :param ci_id: item ID to link
+        :return: true if successful, false otherwise
+        """
+        uri = f'{connection_object.base_url}/requests/{request_id}/cis/{ci_id}'
+        try:
+            connection_object.api_call(uri, 'POST')
+            return True
+        except Exception as e:
+            return False
+
+    @classmethod
+    def remove_ci_from_request_by_id(cls, connection_object: XurrentApiHelper, request_id: int, ci_id: int) -> bool:
+        """
+        Unlink configuration items from a request.
+
+        :param connection_object: Xurrent API connection object
+        :param request_id: ID of the request
+        :param ci_id: item ID to unlink
+        :return: true if successful, false otherwise
+        """
+        uri = f'{connection_object.base_url}/requests/{request_id}/cis/{ci_id}'
+        try:
+            connection_object.api_call(uri, 'DELETE')
+            return True
+        except Exception as e:
+            return False
+    
+    def get_cis(self) -> List[ConfigurationItem]:
+        """
+        Retrieve configuration items associated with this request instance.
+
+        :return: List of ConfigurationItem objects
+        """
+        from .configuration_items import ConfigurationItem
+        uri = f'{self._connection_object.base_url}/requests/{self.id}/cis'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ConfigurationItem.from_data(self._connection_object, ci) for ci in response]
+
+    def add_ci(self, ci_id: int) -> bool:
+        """
+        Link configuration items to this request instance.
+
+        :param ci_ids: List of configuration item IDs to link
+        :return: true if successful, false otherwise
+        """
+
+        uri = f'{self._connection_object.base_url}/requests/{self.id}/cis/{ci_id}'
+        try:
+            self._connection_object.api_call(uri, 'POST')
+            return True
+        except Exception as e:
+            return False
+        
+
+    def remove_ci(self, ci_id: int) -> bool:
+        """
+        Unlink configuration items from this request instance.
+
+        :param ci_ids: List of configuration item IDs to unlink
+        :return: true if successful, false otherwise
+        """
+        uri = f'{self._connection_object.base_url}/requests/{self.id}/cis/{ci_id}'
+        try:
+            self._connection_object.api_call(uri, 'DELETE')
+            return True
+        except Exception as e:
+            return False
+

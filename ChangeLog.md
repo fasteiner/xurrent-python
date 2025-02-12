@@ -1,5 +1,24 @@
 # Change Log
 
+## v0.0.2.12
+
+### New Features
+
+- configuration_items: add class ConfigurationItem
+- configuration_items: add static methods: get_configuration_items, get_by_id
+- Request: add class method get_cis_by_request_id to retrieve configuration items associated with a request by its ID.
+- Request: add class method add_cis_to_request_by_id to link configuration items to a request by its ID.
+- Request: add class method remove_cis_from_request_by_id to unlink configuration items from a request by its ID.
+- Request: add instance method get_cis to retrieve configuration items associated with the current request instance.
+- Request: add instance method add_cis to link configuration items to the current request instance.
+- Request: add instance method remove_cis to unlink configuration items from the current request instance.
+
+### Bug Fixes
+
+- Core: fix issue where 204 status code was not handled correctly
+- Core: paging, ensure that '<>' gets removed
+
+
 ## v0.0.2.11
 
 ### New Features
