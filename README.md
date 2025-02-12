@@ -19,7 +19,7 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
     apitoken = "********"
 
-    baseUrl = "https://api.4me.qa/v1"
+    baseUrl = "https://api.xurrent.qa/v1"
     account = "account-name"
 
     x_api_helper = XurrentApiHelper(baseUrl, apitoken, account)
@@ -35,6 +35,54 @@ This module is used to interact with the Xurrent API. It provides a set of class
     helper.decode_api_id('ZmFiaWFuc3RlaW5lci4yNDEyMTAxMDE0MTJANG1lLWRlbW8uY29tL1JlcS83MDU3NTU') # fabiansteiner.241210101412@4me-demo.com/Req/705755
     # this can be used to derive the ID from the nodeID
 
+```
+
+#### Configuration Items
+
+```python
+    # Example usage of ConfigurationItem class
+    from xurrent.configuration_items import ConfigurationItem
+    
+    # Get a Configuration Item by ID
+    ci = ConfigurationItem.get_by_id(x_api_helper, <id>)
+    print(ci)
+
+    # List all Configuration Items
+    all_cis = ConfigurationItem.get_configuration_items(x_api_helper)
+    print(all_cis)
+
+    # List active Configuration Items
+    active_cis = ConfigurationItem.get_configuration_items(x_api_helper, predefinedFilter="active")
+    print(active_cis)
+
+    # Update a Configuration Item
+    updated_ci = ci.update({"name": "Updated Name", "status": "being_repaired"})
+    print(updated_ci)
+
+    # Create a new Configuration Item
+    # creating without specifying the label, takes the last ci of the product and increments the label
+    # example: "wdc-02" -> "wdc-03"
+    data = {"name": "New CI", "type": "software", "status": "in_production", "product_id": "<product_id>"}
+    new_ci = ConfigurationItem.create(api_helper, data)
+    print(new_ci)
+
+    # Archive a Configuration Item (must be in an allowed state)
+    try:
+        archived_ci = ci.archive()
+        print(archived_ci)
+    except ValueError as e:
+        print(f"Error: {e}")
+
+    # Trash a Configuration Item (must be in an allowed state)
+    try:
+        trashed_ci = ci.trash()
+        print(trashed_ci)
+    except ValueError as e:
+        print(f"Error: {e}")
+
+    # Restore a Configuration Item
+    restored_ci = ci.restore()
+    print(restored_ci)
 ```
 
 #### People
@@ -92,6 +140,55 @@ This module is used to interact with the Xurrent API. It provides a set of class
     
 
 ```
+
+##### Request Configuration Items
+
+```python
+    from src.xurrent.requests import Request
+
+    # Get Configuration Items for a Request
+    request_id = <request_id>
+
+
+    # Add a Configuration Item to a Request
+    ci_id = <ci_id>
+    try:
+        response = Request.add_ci_to_request_by_id(x_api_helper, request_id, ci_id)
+        print("CI added:", response)
+    except ValueError as e:
+        print(f"Error: {e}")
+
+    cis = Request.get_cis_by_request_id(x_api_helper, request_id)
+    print(cis)
+
+    # Remove a Configuration Item from a Request
+    try:
+        response = Request.remove_ci_from_request_by_id(x_api_helper, request_id, ci_id)
+        print("CI removed:", response)
+    except ValueError as e:
+        print(f"Error: {e}")
+
+    # Instance-based example
+    req = Request.get_by_id(x_api_helper, request_id)
+
+    # Add a CI to this request
+    try:
+        response = req.add_ci(ci_id)
+        print("CI added:", response)
+    except ValueError as e:
+        print(f"Error: {e}")
+
+    # Get CIs for this request
+    cis_instance = req.get_cis()
+    print(cis_instance)
+
+    # Remove a CI from this request
+    try:
+        response = req.remove_ci(ci_id)
+        print("CI removed:", response)
+    except ValueError as e:
+        print(f"Error: {e}")
+```	
 
 ##### Request Notes
 

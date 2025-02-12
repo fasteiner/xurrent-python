@@ -49,7 +49,7 @@ class WorkflowPredefinedFilter(str, Enum):
 
 
 class Workflow(JsonSerializableDict):
-    # Endpoint for workflows
+    # https://developer.xurrent.com/v1/workflows/
     __resourceUrl__ = 'workflows'
 
     def __init__(self,

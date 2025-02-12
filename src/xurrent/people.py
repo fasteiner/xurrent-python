@@ -16,7 +16,7 @@ class PeoplePredefinedFilter(str, Enum):
 T = TypeVar('T', bound='Person')
 
 class Person(JsonSerializableDict):
-    #https://developer.4me.com/v1/people/
+    #https://developer.xurrent.com/v1/people/
     __resourceUrl__ = 'people'
 
     def __init__(self, connection_object: XurrentApiHelper, id, name: str = None, primary_email: str = None,**kwargs):
