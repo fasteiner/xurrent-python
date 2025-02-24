@@ -77,7 +77,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          token: ${{ secrets.GH_ACTIONS_PAT }}  # Use the PAT for authentication
           commit_message: "Update CHANGELOG for release ${{ steps.gitversion.outputs.semVer }}"
           file_pattern: "CHANGELOG.md"
       
@@ -105,7 +104,6 @@ jobs:
       - name: Commit Updated pyproject.toml
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          token: ${{ secrets.GH_ACTIONS_PAT }}  # Use the PAT for authentication
           commit_message: "Update pyproject.toml for release ${{ steps.gitversion.outputs.semVer }}"
           file_pattern: "pyproject.toml"
 
