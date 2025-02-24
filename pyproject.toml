@@ -1,6 +1,6 @@
 [project]
 name = "xurrent"
-version = "0.4.0-preview.213"
+version = "0.4.0"
 authors = [
   { name="Fabian Steiner", email="fabian@stei-ner.net" },
 ]
@@ -18,7 +18,7 @@ Homepage = "https://github.com/fasteiner/xurrent-python"
 Issues = "https://github.com/fasteiner/xurrent-python/issues"
 [tool.poetry]
 name = "xurrent"
-version = "0.4.0-preview.213"
+version = "0.4.0"
 description = "A python module to interact with the Xurrent API."
 authors = ["Ing. Fabian Franz Steiner BSc. <fabian.steiner@tttech.com>"]
 readme = "README.md"
