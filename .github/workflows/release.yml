@@ -34,6 +34,10 @@ jobs:
         with:
           command: query
           version: unreleased
+          
+      - name: Debug Changelog Output
+        run: echo "${{ steps.extract-changelog.outputs.result }}"
+
 
       - name: Update CHANGELOG.md
         if: github.ref == 'refs/heads/main'  # Only update for stable releases
