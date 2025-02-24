@@ -142,7 +142,7 @@
 - People: add base functionality for people
 - core: automatically get api user person object (optional, default: True)
 
-## v0.0.2
+## v0.0.2-beta.0
 
 ### Added
 
