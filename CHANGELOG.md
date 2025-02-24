@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core: add enum LogLevel
 - Core: add method set_log_level to change the log level
 
-### Changed
+### Breaking Changes
 
 - Core: init: parameter for logger has been added, if not provided, a new logger will be created
 
@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Person, Workflow, Task: inherit JsonSerializableDict --> make serializable
 - Request: close: make it possible to close a without a note (using default note)
 
-### Changed
+### Breaking Changes
 
 - Request: request.created_by, request.requested_by, request.requested_for, request.member are now Person objects
 - Workflow: workflow.manager is now a Person object
@@ -84,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Core: __append_per_page: exclude auto append for /me
 
-### Changed
+### Breaking Changes
 
 - Request: request.workflow is now a Workflow object instead of a dict --> request.workflow.id instead of request.workflow['id']
 
@@ -134,7 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Workflow: Fix toString / __str__ method
 
-### Changed
+### Breaking Changes
 
 - Request: renamed get_request to get_requests
 - Workflow: get_workflow_task_by_template_id now returns a Task object List

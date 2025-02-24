@@ -35,13 +35,43 @@ jobs:
           command: query
           version: unreleased
 
+      - name: Detect Version Bump Type
+        id: version-bump
+        if: github.ref == 'refs/heads/main'  # Only update for stable releases
+        run: |
+          CHANGELOG="${{ steps.extract-changelog.outputs.result }}"
+          echo "Extracted Changelog:"
+          echo "$CHANGELOG"
+
+          # Default bump type
+          BUMP_TYPE="patch"
+
+          if echo "$CHANGELOG" | grep -q "### Breaking Changes"; then
+            BUMP_TYPE="major"
+          elif echo "$CHANGELOG" | grep -q "### Removed"; then
+            BUMP_TYPE="major"
+          elif echo "$CHANGELOG" | grep -q "### Added"; then
+            BUMP_TYPE="minor"
+          elif echo "$CHANGELOG" | grep -q "### Deprecated"; then
+            BUMP_TYPE="minor"
+          elif echo "$CHANGELOG" | grep -q "### Changed"; then
+            BUMP_TYPE="minor"
+          elif echo "$CHANGELOG" | grep -q "### Fixed"; then
+            BUMP_TYPE="patch"
+          elif echo "$CHANGELOG" | grep -q "### Security"; then
+            BUMP_TYPE="patch"
+          fi
+
+          echo "Version bump detected: $BUMP_TYPE"
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_ENV
+
 
       - name: Update CHANGELOG.md
         if: github.ref == 'refs/heads/main'  # Only update for stable releases
         uses: release-flow/keep-a-changelog-action@v3.0.0
         with:
           command: bump
-          version: unreleased
+          version: ${{ env.bump_type }}
 
       - name: Commit Updated CHANGELOG.md
         if: github.ref == 'refs/heads/main'
