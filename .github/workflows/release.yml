@@ -34,9 +34,9 @@ jobs:
         with:
           command: query
           version: unreleased
-          
+
       - name: Debug Changelog Output
-        run: echo "${{ steps.extract-changelog.outputs.result }}"
+        run: echo "${{ steps.extract-changelog.outputs.release-notes }}"
 
 
       - name: Update CHANGELOG.md
@@ -44,7 +44,7 @@ jobs:
         uses: release-flow/keep-a-changelog-action@v3.0.0
         with:
           command: bump
-          version: v${{ steps.gitversion.outputs.semVer }}
+          version: unreleased
 
       - name: Commit Updated CHANGELOG.md
         if: github.ref == 'refs/heads/main'
@@ -63,6 +63,6 @@ jobs:
         with:
           tag_name: v${{ steps.gitversion.outputs.semVer }}
           name: Release v${{ steps.gitversion.outputs.semVer }}
-          body: "${{ steps.extract-changelog.outputs.result }}"
+          body: "${{ steps.extract-changelog.outputs.release-notes }}"
           draft: false
           prerelease: ${{ github.ref == 'refs/heads/Dev' }}
