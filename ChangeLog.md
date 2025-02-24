@@ -9,6 +9,7 @@
 ### Changed
 
 - Switch to using "Keep a Changelog" ChangeLog format
+- Change versioning to use semantic versioning
 
 ## v0.0.2.12
 
