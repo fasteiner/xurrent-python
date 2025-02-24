@@ -79,6 +79,7 @@ jobs:
         with:
           commit_message: "Update CHANGELOG for release ${{ steps.gitversion.outputs.semVer }}"
           file_pattern: "CHANGELOG.md"
+          push_options: ${{ github.ref == 'refs/heads/main' && '--force' || '' }}
       
 
       - uses: actions/setup-python@v5
@@ -106,6 +107,7 @@ jobs:
         with:
           commit_message: "Update pyproject.toml for release ${{ steps.gitversion.outputs.semVer }}"
           file_pattern: "pyproject.toml"
+          push_options: ${{ github.ref == 'refs/heads/main' && '--force' || '' }}
 
       - name: Build release distributions
         run: |
