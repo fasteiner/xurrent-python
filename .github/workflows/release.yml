@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - dev
+      - Dev
 
 permissions:
   contents: write
@@ -61,4 +61,4 @@ jobs:
           name: Release ${{ steps.gitversion.outputs.semVer }}
           body: "${{ steps.extract-changelog.outputs.changes }}"
           draft: false
-          prerelease: ${{ github.ref == 'refs/heads/dev' }}
+          prerelease: ${{ github.ref == 'refs/heads/Dev' }}
