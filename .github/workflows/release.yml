@@ -33,7 +33,7 @@ jobs:
         uses: release-flow/keep-a-changelog-action@v3.0.0
         with:
           command: query
-          version: "[Unreleased]"
+          version: unreleased
 
       - name: Update CHANGELOG.md
         if: github.ref == 'refs/heads/main'  # Only update for stable releases
