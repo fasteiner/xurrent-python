@@ -1,0 +1,67 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+      - Dev
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for GitVersion to work correctly
+
+      - name: Install GitVersion
+        uses: GitTools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: GitTools/actions/gitversion/execute@v0
+
+      - name: Extract Release Notes from Changelog
+        id: extract-changelog
+        uses: jupyter-naas/actions-extract-changelog@v1
+        with:
+          changelog_path: "CHANGELOG.md"
+          version: "${{ steps.gitversion.outputs.semVer }}"
+          unreleased: true  # Get content from the "Unreleased" section
+
+      - name: Update CHANGELOG.md
+        if: github.ref == 'refs/heads/main'  # Only update when it's a stable release
+        run: |
+          VERSION=${{ steps.gitversion.outputs.semVer }}
+          DATE=$(date +"%Y-%m-%d")
+
+          # Replace `[Unreleased]` with `[VERSION] - DATE`
+          sed -i "s|## \[Unreleased\]|## [$VERSION] - $DATE|g" CHANGELOG.md
+
+          # Commit and push changes
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG for release $VERSION"
+          git push origin main
+
+      - name: Create Git Tag
+        run: |
+          git tag ${{ steps.gitversion.outputs.semVer }}
+          git push origin ${{ steps.gitversion.outputs.semVer }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.gitversion.outputs.semVer }}
+          name: Release ${{ steps.gitversion.outputs.semVer }}
+          body: "${{ steps.extract-changelog.outputs.changes }}"
+          draft: false
+          prerelease: ${{ github.ref == 'refs/heads/Dev' }}

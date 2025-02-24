@@ -1,5 +1,15 @@
 # Change Log
 
+## [Unreleased]
+
+### Added
+
+- Add automatic release notes generation, github release
+
+### Changed
+
+- Switch to using "Keep a Changelog" ChangeLog format
+
 ## v0.0.2.12
 
 ### New Features
