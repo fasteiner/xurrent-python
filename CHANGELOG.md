@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switch to using "Keep a Changelog" ChangeLog format
 - Change versioning to use semantic versioning (change log had to be updated as well) 
 
-## v0.0.2-beta.12
+## [v0.0.2-beta.12] - 2025-02-12
 
 ### Added
 
@@ -35,13 +35,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core: paging, ensure that '<>' gets removed
 
 
-## v0.0.2-beta.11
+## [v0.0.2-beta.11] - 2025-01-08
 
 ### Added
 
 - Core: add function decode_api_id and encode_api_id to convert between nodeID and normal ID
 
-## v0.0.2-beta.10
+## [v0.0.2-beta.10] - 2024-12-18
 
 ### Added
 
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Core: init: parameter for logger has been added, if not provided, a new logger will be created
 
-## v0.0.2-beta.9
+## [v0.0.2-beta.9] - 2024-12-11
 
 ### Added
 
@@ -77,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Request: request.created_by, request.requested_by, request.requested_for, request.member are now Person objects
 - Workflow: workflow.manager is now a Person object
 
-## v0.0.2-beta.8
+## [v0.0.2-beta.8] - 2024-12-10
 
 ### Fixed
 
@@ -87,25 +87,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Request: request.workflow is now a Workflow object instead of a dict --> request.workflow.id instead of request.workflow['id']
 
-## v0.0.2-beta.7
+## [v0.0.2-beta.7] - 2024-12-10
 
 ### Bug Fixes
 
 - Task: `__update_object__` fixed
 
-## v0.0.2-beta.6
+## [v0.0.2-beta.6] - 2024-12-10
 
 ### Bug Fixes
 
 - Task: Fix update method
 
-## v0.0.2-beta.5
+## [v0.0.2-beta.5] - 2024-12-10
 
 ### Bug Fixes
 
 - Task: Fix update method
 
-## v0.0.2-beta.4
+## [v0.0.2-beta.4] - 2024-12-10
 
 ### Added
 
@@ -113,14 +113,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - People: add static methods: create, get_people
 - Workflows: add static methods: get_workflows
 
-## v0.0.2-beta.3
+## [v0.0.2-beta.3] - 2024-12-06
 
 ### Added
 
 - Task: add non static methods: get_workflow, close, approve, reject, cancel, create
 - Workflow: add non static methods: create_task
 
-## v0.0.2-beta.2
+## [v0.0.2-beta.2] - 2024-12-06
 
 ### Added
 
@@ -139,7 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workflow: get_workflow_task_by_template_id now returns a Task object List
 
 
-## v0.0.2-beta.1
+## [v0.0.2-beta.1] - 2024-12-06
 
 ### Added
 
@@ -147,7 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - People: add base functionality for people
 - core: automatically get api user person object (optional, default: True)
 
-## v0.0.2-beta.0
+## [v0.0.2-beta.0] - 2024-12-05
 
 ### Added
 
@@ -158,7 +158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Request: Fix get_request, get_notes method
 
 
-## v0.0.1
+## [v0.0.1] - 2024-12-05
 
 ### Added
 
