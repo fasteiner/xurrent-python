@@ -18,6 +18,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Required for GitVersion to work correctly
+      
+      - name: Setup SSH for Deploy Key
+        if: github.ref == 'refs/heads/main'  # Only update for stable releases
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Install GitVersion
         uses: GitTools/actions/gitversion/setup@v0
@@ -79,7 +87,6 @@ jobs:
         with:
           commit_message: "Update CHANGELOG for release ${{ steps.gitversion.outputs.semVer }}"
           file_pattern: "CHANGELOG.md"
-          push_options: ${{ github.ref == 'refs/heads/main' && '--force' || '' }}
       
 
       - uses: actions/setup-python@v5
@@ -107,7 +114,6 @@ jobs:
         with:
           commit_message: "Update pyproject.toml for release ${{ steps.gitversion.outputs.semVer }}"
           file_pattern: "pyproject.toml"
-          push_options: ${{ github.ref == 'refs/heads/main' && '--force' || '' }}
 
       - name: Build release distributions
         run: |
