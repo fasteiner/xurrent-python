@@ -4,7 +4,7 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
 ## Change Log
 
-[ChangeLog.md](https://github.com/fasteiner/xurrent-python/blob/main/ChangeLog.md)
+[ChangeLog.md](https://github.com/fasteiner/xurrent-python/blob/main/CHANGELOG.md)
 
 ## Contributing
 
