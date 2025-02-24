@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add automatic release notes generation, github release
+- Build fully automated release on push on main
 
 ### Changed
 
