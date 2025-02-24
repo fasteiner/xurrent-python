@@ -32,6 +32,7 @@ jobs:
         id: extract-changelog
         uses: release-flow/keep-a-changelog-action@v3.0.0
         with:
+          version-regexp: '^v?\d+\.\d+\.\d+(-[\w\.]+)?(\+\w+)?$'
           command: query
           version: v${{ steps.gitversion.outputs.semVer }}
 
@@ -39,6 +40,7 @@ jobs:
         if: github.ref == 'refs/heads/main'  # Only update for stable releases
         uses: release-flow/keep-a-changelog-action@v3.0.0
         with:
+          version-regexp: '^v?\d+\.\d+\.\d+(-[\w\.]+)?(\+\w+)?$'
           command: bump
           version: v${{ steps.gitversion.outputs.semVer }}
 
