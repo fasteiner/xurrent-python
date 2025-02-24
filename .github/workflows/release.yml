@@ -1,0 +1,137 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+      - Dev
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for GitVersion to work correctly
+
+      - name: Install GitVersion
+        uses: GitTools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: GitTools/actions/gitversion/execute@v0
+
+      - name: Extract Release Notes from Changelog
+        id: extract-changelog
+        uses: release-flow/keep-a-changelog-action@v3.0.0
+        with:
+          command: query
+          version: unreleased
+
+
+      - name: Update CHANGELOG.md
+        if: github.ref == 'refs/heads/main'  # Only update for stable releases
+        uses: release-flow/keep-a-changelog-action@v3.0.0
+        with:
+          command: bump
+          version: unreleased
+
+      - name: Commit Updated CHANGELOG.md
+        if: github.ref == 'refs/heads/main'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update CHANGELOG for release ${{ steps.gitversion.outputs.semVer }}"
+          file_pattern: "CHANGELOG.md"
+      
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Required Python Packages
+        run: pip install build tomlkit
+
+      - name: Update Version in pyproject.toml
+        run: |
+          python - <<EOF
+          import tomlkit
+          pyproject_file = "pyproject.toml"
+          with open(pyproject_file, "r", encoding="utf-8") as f:
+              data = tomlkit.load(f)
+          data["project"]["version"] = "${{ steps.gitversion.outputs.semVer }}"
+          data["tool"]["poetry"]["version"] = "${{ steps.gitversion.outputs.semVer }}"
+          with open(pyproject_file, "w", encoding="utf-8") as f:
+              tomlkit.dump(data, f)
+          EOF
+
+      - name: Commit Updated pyproject.toml
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update pyproject.toml for release ${{ steps.gitversion.outputs.semVer }}"
+          file_pattern: "pyproject.toml"
+
+      - name: Build release distributions
+        run: |
+          # NOTE: put your own distribution build steps here.
+          python -m pip install build
+          python -m build
+
+      - name: Create Git Tag
+        run: |
+          git tag ${{ steps.gitversion.outputs.semVer }}
+          git push origin ${{ steps.gitversion.outputs.semVer }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.gitversion.outputs.semVer }}
+          name: Release v${{ steps.gitversion.outputs.semVer }}
+          body: "${{ steps.extract-changelog.outputs.release-notes }}"
+          draft: false
+          prerelease: ${{ github.ref == 'refs/heads/Dev' }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+  pypi-publish:
+    runs-on: ubuntu-latest
+    needs:
+      - create-release
+    if: github.ref == 'refs/heads/main'  # Ensures it only runs for the main branch
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+
+    # Dedicated environments with protections for publishing are strongly recommended.
+    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
+    environment:
+      name: pypi
+      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
+      # url: https://pypi.org/p/YOURPROJECT
+      #
+      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
+      # ALTERNATIVE: exactly, uncomment the following line instead:
+      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
+
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
