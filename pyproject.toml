@@ -1,6 +1,10 @@
 [project]
 name = "xurrent"
+<<<<<<< HEAD
 version = "0.4.0"
+=======
+version = "0.4.0-preview.216"
+>>>>>>> 53f6daf31b1da49270bacf42fa4df7900729dda8
 authors = [
   { name="Fabian Steiner", email="fabian@stei-ner.net" },
 ]
@@ -18,7 +22,11 @@ Homepage = "https://github.com/fasteiner/xurrent-python"
 Issues = "https://github.com/fasteiner/xurrent-python/issues"
 [tool.poetry]
 name = "xurrent"
+<<<<<<< HEAD
 version = "0.4.0"
+=======
+version = "0.4.0-preview.216"
+>>>>>>> 53f6daf31b1da49270bacf42fa4df7900729dda8
 description = "A python module to interact with the Xurrent API."
 authors = ["Ing. Fabian Franz Steiner BSc. <fabian.steiner@tttech.com>"]
 readme = "README.md"
