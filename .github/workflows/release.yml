@@ -35,35 +35,33 @@ jobs:
           command: query
           version: unreleased
 
-      - name: Detect Version Bump Type
+      - name: Set Version Bump Type from GitVersion
         id: version-bump
-        if: github.ref == 'refs/heads/main'  # Only update for stable releases
+        if: github.ref == 'refs/heads/main'
         run: |
-          CHANGELOG="${{ steps.extract-changelog.outputs.result }}"
-          echo "Extracted Changelog:"
-          echo "$CHANGELOG"
-
+          VERSION_INCREMENT="${{ steps.gitversion.outputs.MajorMinorPatch }}"
+          TAG="${{ steps.gitversion.outputs.PreReleaseLabel }}"
+          
           # Default bump type
           BUMP_TYPE="patch"
 
-          if echo "$CHANGELOG" | grep -q "### Breaking Changes"; then
+          # Determine bump type based on GitVersion's calculated version
+          if [[ "$VERSION_INCREMENT" =~ ^[1-9][0-9]*\.0\.0$ ]]; then
             BUMP_TYPE="major"
-          elif echo "$CHANGELOG" | grep -q "### Removed"; then
-            BUMP_TYPE="major"
-          elif echo "$CHANGELOG" | grep -q "### Added"; then
+          elif [[ "$VERSION_INCREMENT" =~ ^[0-9]+\.[1-9][0-9]*\.0$ ]]; then
             BUMP_TYPE="minor"
-          elif echo "$CHANGELOG" | grep -q "### Deprecated"; then
-            BUMP_TYPE="minor"
-          elif echo "$CHANGELOG" | grep -q "### Changed"; then
-            BUMP_TYPE="minor"
-          elif echo "$CHANGELOG" | grep -q "### Fixed"; then
+          elif [[ "$VERSION_INCREMENT" =~ ^[0-9]+\.[0-9]+\.[1-9][0-9]*$ ]]; then
             BUMP_TYPE="patch"
-          elif echo "$CHANGELOG" | grep -q "### Security"; then
-            BUMP_TYPE="patch"
+          fi
+
+          # Handle pre-release versions
+          if [[ -n "$TAG" ]]; then
+            BUMP_TYPE="pre${BUMP_TYPE}"
           fi
 
           echo "Version bump detected: $BUMP_TYPE"
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_ENV
+
 
 
       - name: Update CHANGELOG.md

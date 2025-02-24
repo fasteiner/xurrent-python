@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Changed
+
+- Ensure that version numbers in ChangeLog and releases are in sync
+
+## [0.5.0] - 2025-02-24
+
 ### Changed
 
 - Corrected ReadMe links
@@ -170,7 +176,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
 
-[0.0.2]: https://github.com/fasteiner/xurrent-python/compare/v0.0.2-beta.12...v0.0.2
+[0.4.1]: https://github.com/fasteiner/xurrent-python/compare/v0.4.0...v0.4.1
+
+[0.4.0]: https://github.com/fasteiner/xurrent-python/compare/v0.0.2-beta.12...v0.4.0
 
 [0.0.2-beta.12]: https://github.com/fasteiner/xurrent-python/compare/v0.0.2-beta.11...v0.0.2-beta.12
 
