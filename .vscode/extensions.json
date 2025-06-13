@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "elagil.pre-commit-helper",
-        "ms-python.python"
+        "ms-python.python",
+        "github.vscode-github-actions"
     ]
 }
