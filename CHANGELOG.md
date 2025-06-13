@@ -5,7 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.1] - 2025-06-13
+## [Unreleased]
+
+### Changed
+
+#### `.github/workflows/release.yml`
+
+- Introduced a new step `Determine Effective Version` to compute a more accurate version number depending on whether Python files were changed:
+  - If Python files changed, uses `gitversion`'s semantic version (`semVer`).
+  - If no Python files changed, forces a patch bump based on the previous tag.
+- The `effective_version` output is now used consistently across:
+  - The `Update CHANGELOG.md` step.
+  - The commit message for updating `pyproject.toml`.
+  - The Git tag and GitHub Release.
+  - The `pyproject.toml` version field.
+- Adjusted the condition for the `Build release distributions` step to run only if Python files changed.
+- Simplified and cleaned up various comments in the workflow for better readability and maintainability.
+
+## [0.9.0] - 2025-06-13
 
 ### Changed
 
