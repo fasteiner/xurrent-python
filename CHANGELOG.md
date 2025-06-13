@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.7.0] - 2025-06-13
 
 ### Added
 
 #### `.devcontainer/devcontainer.json`
+
 - Introduced a new Visual Studio Code **development container** configuration to streamline the development environment.
   - Uses the base Ubuntu image from Microsoft's devcontainers.
   - Adds common development utilities via `common-utils` feature.
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Runs `.devcontainer/setup.sh` post container creation for environment setup.
 
 #### `.devcontainer/setup.sh`
+
 - Added a setup script for the development container:
   - Installs **Poetry** package manager.
   - Installs all project dependencies, including development dependencies.
@@ -28,16 +30,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 #### `Contributing.md`
+
 - Updated instructions for activating the Poetry virtual environment:
   - Changed from `poetry shell` to `eval $(poetry env activate)` for improved shell compatibility and automation.
 
 #### `README.md`
+
 - Added badges to the top of the README for enhanced project visibility:
   - **PyPI version** badge.
   - **PyPI downloads** badge.
   - **GPL v3 License** badge.
 
 #### `pyproject.toml`
+
 - Added new dependency:
   - `shell` package (`^1.0.1`) for enhanced shell scripting and command execution capabilities within the project.
 
@@ -211,6 +216,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pagination: auto pagination get requests
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
+
+[0.7.0]: https://github.com/fasteiner/xurrent-python/compare/v0.6.0...v0.7.0
 
 [0.6.0]: https://github.com/fasteiner/xurrent-python/compare/v0.5.0...v0.6.0
 
