@@ -12,6 +12,8 @@ permissions:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      python_changed: ${{ steps.check-python-changes.outputs.python_changed }}
 
     steps:
       - name: Checkout repository
@@ -34,6 +36,21 @@ jobs:
         with:
           command: query
           version: unreleased
+
+      - name: Check for Python file changes
+        id: check-python-changes
+        run: |
+          git fetch origin main
+          # Compare current commit to previous one on this branch
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed files: $CHANGED_FILES"
+          
+          # Check if any Python file was changed
+          if echo "$CHANGED_FILES" | grep -E '\.py$'; then
+            echo "python_changed=true" >> $GITHUB_ENV
+          else
+            echo "python_changed=false" >> $GITHUB_ENV
+          fi
 
       - name: Set Version Bump Type from GitVersion
         id: version-bump
@@ -117,6 +134,7 @@ jobs:
           git push origin ${{ steps.gitversion.outputs.semVer }}
 
       - name: Create GitHub Release
+        if: env.python_changed == 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.gitversion.outputs.semVer }}
@@ -128,6 +146,7 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
       - name: Upload distributions
+        if: env.python_changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: release-dists
@@ -136,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - create-release
-    if: github.ref == 'refs/heads/main'  # Ensures it only runs for the main branch
+    if: github.ref == 'refs/heads/main' && needs.create-release.outputs.python_changed == 'true'  # Ensures it only runs for the main branch and if Python files were changed
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
