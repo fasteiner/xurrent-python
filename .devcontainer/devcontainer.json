@@ -1,0 +1,16 @@
+{
+  "name": "Xurrent Python Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",  
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "elagil.pre-commit-helper",
+        "ms-python.python"
+      ]
+    }
+  }
+}

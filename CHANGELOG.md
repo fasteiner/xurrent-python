@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+#### `.devcontainer/devcontainer.json`
+- Introduced a new Visual Studio Code **development container** configuration to streamline the development environment.
+  - Uses the base Ubuntu image from Microsoft's devcontainers.
+  - Adds common development utilities via `common-utils` feature.
+  - Installs VS Code extensions:
+    - `elagil.pre-commit-helper`
+    - `ms-python.python`
+  - Runs `.devcontainer/setup.sh` post container creation for environment setup.
+
+#### `.devcontainer/setup.sh`
+- Added a setup script for the development container:
+  - Installs **Poetry** package manager.
+  - Installs all project dependencies, including development dependencies.
+  - Activates the Poetry virtual environment and opens a shell.
+  - Installs **pre-commit hooks** for code quality enforcement.
+
+### Changed
+
+#### `Contributing.md`
+- Updated instructions for activating the Poetry virtual environment:
+  - Changed from `poetry shell` to `eval $(poetry env activate)` for improved shell compatibility and automation.
+
+#### `README.md`
+- Added badges to the top of the README for enhanced project visibility:
+  - **PyPI version** badge.
+  - **PyPI downloads** badge.
+  - **GPL v3 License** badge.
+
+#### `pyproject.toml`
+- Added new dependency:
+  - `shell` package (`^1.0.1`) for enhanced shell scripting and command execution capabilities within the project.
+
 ## [0.6.0] - 2025-02-24
 
 ### Changed

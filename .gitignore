@@ -164,3 +164,7 @@ cython_debug/
 
 # poetry
 poetry.lock
+
+# diff files
+*.diff
+diff*
