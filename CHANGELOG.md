@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added a step to detect if any Python files were changed (`check-python-changes`) in the release workflow.
+- The `release` and `publish to PyPI` steps now only run if Python files were changed.
+- The workflow now supports Python 3.12 and Python 3.13 in addition to 3.9–3.11.
+
+- In the Dev Container:
+  - Added GitHub Actions support extension.
+  - Added VSCode Icons extension.
+  - Added Markdown All in One extension.
+  - Added Markdown Checkbox extension.
+  - Added Markdown Preview GitHub Styles extension.
+
+- In the VSCode workspace recommendations:
+  - Added GitHub Actions extension to `.vscode/extensions.json`.
+
+### Changed
+
+- Improved release workflow logic to skip release and publish steps if no Python files were changed.
+
 ## [0.7.0] - 2025-06-13
 
 ### Added
