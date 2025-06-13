@@ -5,12 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2025-06-13
 
 ### Added
 
 - Added a step to detect if any Python files were changed (`check-python-changes`) in the release workflow.
+
 - The `release` and `publish to PyPI` steps now only run if Python files were changed.
+
 - The workflow now supports Python 3.12 and Python 3.13 in addition to 3.9–3.11.
 
 - In the Dev Container:
@@ -238,6 +240,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pagination: auto pagination get requests
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
+
+[0.8.0]: https://github.com/fasteiner/xurrent-python/compare/v0.7.0...v0.8.0
 
 [0.7.0]: https://github.com/fasteiner/xurrent-python/compare/v0.6.0...v0.7.0
 
