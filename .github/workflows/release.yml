@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       python_changed: ${{ steps.check-python-changes.outputs.python_changed }}
+      effective_version: ${{ steps.effective-version.outputs.effective_version }}
 
     steps:
       - name: Checkout repository
@@ -41,15 +42,15 @@ jobs:
         id: check-python-changes
         run: |
           git fetch origin main
-          # Compare current commit to previous one on this branch
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
           echo "Changed files: $CHANGED_FILES"
-          
-          # Check if any Python file was changed
+
           if echo "$CHANGED_FILES" | grep -E '\.py$'; then
             echo "python_changed=true" >> $GITHUB_ENV
+            echo "::set-output name=python_changed::true"
           else
             echo "python_changed=false" >> $GITHUB_ENV
+            echo "::set-output name=python_changed::false"
           fi
 
       - name: Set Version Bump Type from GitVersion
@@ -59,10 +60,8 @@ jobs:
           VERSION_INCREMENT="${{ steps.gitversion.outputs.MajorMinorPatch }}"
           TAG="${{ steps.gitversion.outputs.PreReleaseLabel }}"
 
-          # Default bump type
           BUMP_TYPE="patch"
 
-          # If Python files changed → apply version logic
           if [[ "${{ env.python_changed }}" == "true" ]]; then
             if [[ "$VERSION_INCREMENT" =~ ^[1-9][0-9]*\.0\.0$ ]]; then
               BUMP_TYPE="major"
@@ -72,7 +71,6 @@ jobs:
               BUMP_TYPE="patch"
             fi
 
-            # Handle pre-release versions
             if [[ -n "$TAG" ]]; then
               BUMP_TYPE="pre${BUMP_TYPE}"
             fi
@@ -83,11 +81,29 @@ jobs:
           echo "Version bump detected: $BUMP_TYPE"
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_ENV
 
+      - name: Determine Effective Version
+        id: effective-version
+        run: |
+          if [[ "${{ env.python_changed }}" == "true" ]]; then
+            EFFECTIVE_VERSION="${{ steps.gitversion.outputs.semVer }}"
+          else
+            PREV_TAG=$(git describe --tags --abbrev=0)
+            echo "Previous tag: $PREV_TAG"
 
+            MAJOR=$(echo $PREV_TAG | cut -d. -f1)
+            MINOR=$(echo $PREV_TAG | cut -d. -f2)
+            PATCH=$(echo $PREV_TAG | cut -d. -f3)
+            NEW_PATCH=$((PATCH + 1))
 
+            EFFECTIVE_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+            echo "Forcing patch bump: $EFFECTIVE_VERSION"
+          fi
+
+          echo "effective_version=$EFFECTIVE_VERSION" >> $GITHUB_ENV
+          echo "::set-output name=effective_version::$EFFECTIVE_VERSION"
 
       - name: Update CHANGELOG.md
-        if: github.ref == 'refs/heads/main'  # Only update for stable releases
+        if: github.ref == 'refs/heads/main'
         uses: release-flow/keep-a-changelog-action@v3.0.0
         with:
           command: bump
@@ -97,9 +113,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update CHANGELOG for release ${{ steps.gitversion.outputs.semVer }}"
+          commit_message: "Update CHANGELOG for release ${{ steps.effective-version.outputs.effective_version }}"
           file_pattern: "CHANGELOG.md"
-      
 
       - uses: actions/setup-python@v5
         with:
@@ -115,8 +130,8 @@ jobs:
           pyproject_file = "pyproject.toml"
           with open(pyproject_file, "r", encoding="utf-8") as f:
               data = tomlkit.load(f)
-          data["project"]["version"] = "${{ steps.gitversion.outputs.semVer }}"
-          data["tool"]["poetry"]["version"] = "${{ steps.gitversion.outputs.semVer }}"
+          data["project"]["version"] = "${{ steps.effective-version.outputs.effective_version }}"
+          data["tool"]["poetry"]["version"] = "${{ steps.effective-version.outputs.effective_version }}"
           with open(pyproject_file, "w", encoding="utf-8") as f:
               tomlkit.dump(data, f)
           EOF
@@ -124,57 +139,50 @@ jobs:
       - name: Commit Updated pyproject.toml
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update pyproject.toml for release ${{ steps.gitversion.outputs.semVer }}"
+          commit_message: "Update pyproject.toml for release ${{ steps.effective-version.outputs.effective_version }}"
           file_pattern: "pyproject.toml"
 
       - name: Build release distributions
+        if: env.python_changed == 'true'
         run: |
-          # NOTE: put your own distribution build steps here.
           python -m pip install build
           python -m build
 
       - name: Create Git Tag
         run: |
-          git tag ${{ steps.gitversion.outputs.semVer }}
-          git push origin ${{ steps.gitversion.outputs.semVer }}
+          git tag ${{ steps.effective-version.outputs.effective_version }}
+          git push origin ${{ steps.effective-version.outputs.effective_version }}
 
       - name: Create GitHub Release
         if: env.python_changed == 'true'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.gitversion.outputs.semVer }}
-          name: Release v${{ steps.gitversion.outputs.semVer }}
+          tag_name: v${{ steps.effective-version.outputs.effective_version }}
+          name: Release v${{ steps.effective-version.outputs.effective_version }}
           body: "${{ steps.extract-changelog.outputs.release-notes }}"
           draft: false
           prerelease: ${{ github.ref == 'refs/heads/Dev' }}
           files: |
             dist/*.whl
             dist/*.tar.gz
+
       - name: Upload distributions
         if: env.python_changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: release-dists
           path: dist/
+
   pypi-publish:
     runs-on: ubuntu-latest
     needs:
       - create-release
-    if: github.ref == 'refs/heads/main' && needs.create-release.outputs.python_changed == 'true'  # Ensures it only runs for the main branch and if Python files were changed
+    if: github.ref == 'refs/heads/main' && needs.create-release.outputs.python_changed == 'true'
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
 
-    # Dedicated environments with protections for publishing are strongly recommended.
-    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
     environment:
       name: pypi
-      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      # url: https://pypi.org/p/YOURPROJECT
-      #
-      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
-      # ALTERNATIVE: exactly, uncomment the following line instead:
-      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
 
     steps:
       - name: Retrieve release distributions
