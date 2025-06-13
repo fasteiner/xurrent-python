@@ -1,5 +1,10 @@
 # Xurrent Module
 
+[![PyPI version](https://img.shields.io/pypi/v/xurrent)](https://pypi.org/project/xurrent/)
+[![Downloads](https://img.shields.io/pypi/dm/xurrent)](https://pypistats.org/packages/xurrent)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+
 This module is used to interact with the Xurrent API. It provides a set of classes to interact with the API.
 
 ## Change Log
