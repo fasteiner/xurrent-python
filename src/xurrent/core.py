@@ -64,8 +64,8 @@ class XurrentApiHelper:
         else:
             self.logger = self.create_logger(False)
         #Create a requests session to maintain persistent connections, with preset headers
-        self.__requests = requests.session()
-        self.__requests.headers.update({
+        self.__session = requests.session()
+        self.__session.headers.update({
             'Authorization': f'Bearer {self.api_key}',
             'x-xurrent-account': self.api_account
         })
@@ -164,7 +164,7 @@ class XurrentApiHelper:
                 self.logger.debug(f'{method} {next_page_url} {data if method != "GET" else ""}')
 
                 # Make the HTTP request
-                response = self.__requests.request(method, next_page_url, json=data)
+                response = self.__session.request(method, next_page_url, json=data)
 
                 if response.status_code == 204:
                     return None
