@@ -281,11 +281,12 @@ This module is used to interact with the Xurrent API. It provides a set of class
 ### Bulk Export
 ```python
     import csv
+    import io
 
     #Request a bulk export of "people"
     csvdata = x_api_helper.bulk_export("people")
 
     #Iterate fetched export rows with the csv library, where row 1 defines the column names
-    for row in csv.reader(csvdata):
+    for row in csv.DictReader(io.StringIO(csvdata)):
         print(row["Employee Number"])
 ```
