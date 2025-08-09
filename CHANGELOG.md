@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [Unreleased]
+
+### Added
+
+- Core: Added bulk_export() function to dowload bulk record data
+
+### Changed
+
+- Core: Switched to a requests.session object to enable persistent connection recycling.
+- Core: Provide options to disable pagination and prevent api result's JSON parsing (in association with bulk_export).
+
+### Fixed
+
+- Core: do not prepend the base_url to the uri of an api_call if a protocol is already included (i.e. uri is already fully-formed).
+
 ## [0.9.1] - 2025-06-13
 
 ### Changed
