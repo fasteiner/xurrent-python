@@ -64,7 +64,7 @@ class XurrentApiHelper:
         else:
             self.logger = self.create_logger(False)
         #Create a requests session to maintain persistent connections, with preset headers
-        self.__session = requests.session()
+        self.__session = requests.Session()
         self.__session.headers.update({
             'Authorization': f'Bearer {self.api_key}',
             'x-xurrent-account': self.api_account
@@ -219,7 +219,7 @@ class XurrentApiHelper:
         :param export_format: either 'csv' or 'xlsx' (Default: csv)
         :param save_as: Save the results to a file instead of returning the raw result
         :param poll_timeout: Seconds to wait between export result polls (Default: 5 seconds)
-        :return: CSV or ZIP data from the export
+        :return: CSV or XSLX data from the export, ZIP if multiple types supplied
         """
 
         #Initiate an export and get the polling token
@@ -230,9 +230,9 @@ class XurrentApiHelper:
             self.logger.debug('Export poll wait.')
             time.sleep(poll_timeout)
             result = self.api_call(f"/export/{export['token']}", per_page = None)
-            if result['state'] in ("queued","processing"):
+            if result['state'] in ('queued','processing'):
                 continue
-            if result['state'] == "done":
+            if result['state'] == 'done':
                 break
             self.logger.error(f'Export request failed: {result=}')
             raise
