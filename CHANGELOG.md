@@ -5,21 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-## [Unreleased]
+## [0.10.0] - 2025-08-16
 
 ### Added
 
-- Core: Added bulk_export() function to dowload bulk record data
+- Core: Added bulk\_export() function to dowload bulk record data
 
 ### Changed
 
 - Core: Switched to a requests.session object to enable persistent connection recycling.
-- Core: Provide options to disable pagination and prevent api result's JSON parsing (in association with bulk_export).
+- Core: Provide options to disable pagination and prevent api result's JSON parsing (in association with bulk\_export).
 
 ### Fixed
 
-- Core: do not prepend the base_url to the uri of an api_call if a protocol is already included (i.e. uri is already fully-formed).
+- Core: do not prepend the base\_url to the uri of an api\_call if a protocol is already included (i.e. uri is already fully-formed).
 
 ## [0.9.1] - 2025-06-13
 
@@ -280,6 +279,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pagination: auto pagination get requests
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
+
+[0.10.0]: https://github.com/fasteiner/xurrent-python/compare/v0.9.1...v0.10.0
 
 [0.9.1]: https://github.com/fasteiner/xurrent-python/compare/v0.9.0...v0.9.1
 
