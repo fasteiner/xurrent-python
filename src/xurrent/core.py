@@ -63,6 +63,12 @@ class XurrentApiHelper:
             self.logger = logger
         else:
             self.logger = self.create_logger(False)
+        #Create a requests session to maintain persistent connections, with preset headers
+        self.__session = requests.Session()
+        self.__session.headers.update({
+            'Authorization': f'Bearer {self.api_key}',
+            'x-xurrent-account': self.api_account
+        })
         if resolve_user:
             # Import Person lazily
             from .people import Person
@@ -130,23 +136,19 @@ class XurrentApiHelper:
             handler.setLevel(level)
 
 
-    def api_call(self, uri: str, method='GET', data=None, per_page=100):
+    def api_call(self, uri: str, method='GET', data=None, per_page=100, raw=False):
         """
         Make a call to the Xurrent API with support for rate limiting and pagination.
         :param uri: URI to call
-        :param method: HTTP method to use
+        :param method: HTTP method to use (default: GET)
         :param data: Data to send with the request (optional)
-        :param per_page: Number of records per page for GET requests (default: 100)
+        :param per_page: Number of records per page for GET requests, setting to 0/None disables pagination (default: 100)
+        :param raw: Do not process the request result, e.g. in the case of non-JSON data (default: False)
         :return: JSON response from the API or aggregated data for paginated GET
         """
-        # Ensure the base URL is included in the URI
-        if not uri.startswith(self.base_url):
+        # Ensure the base URL is included in the URI, if no protocol (https://) specified
+        if not uri.startswith(self.base_url) and "://" not in uri[:10]:
             uri = f'{self.base_url}{uri}'
-
-        headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'x-xurrent-account': self.api_account
-        }
 
         aggregated_data = []
         next_page_url = uri
@@ -154,7 +156,7 @@ class XurrentApiHelper:
         while next_page_url:
             try:
                 # Append pagination parameters for GET requests
-                if method == 'GET':
+                if per_page and method == 'GET':
                     # if contains ? or does not end with /, append per_page
                     next_page_url = self.__append_per_page(next_page_url, per_page)
 
@@ -162,7 +164,7 @@ class XurrentApiHelper:
                 self.logger.debug(f'{method} {next_page_url} {data if method != "GET" else ""}')
 
                 # Make the HTTP request
-                response = requests.request(method, next_page_url, headers=headers, json=data)
+                response = self.__session.request(method, next_page_url, json=data)
 
                 if response.status_code == 204:
                     return None
@@ -178,6 +180,10 @@ class XurrentApiHelper:
                 if not response.ok:
                     self.logger.error(f'Error in request: {response.status_code} - {response.text}')
                     response.raise_for_status()
+
+                #Stop here if we shall not process or interperet the returned data
+                if raw:
+                    return response.content
 
                 # Process response
                 response_data = response.json()
@@ -205,6 +211,39 @@ class XurrentApiHelper:
 
         # Return aggregated results for paginated GET
         return aggregated_data
+
+    def bulk_export(self, type: str, export_format='csv', save_as=None, poll_timeout=5):
+        """
+        Make a call to the Xurrent API to perform a bulk export
+        :param type: Resource type(s) to download, comma-delimited
+        :param export_format: either 'csv' or 'xlsx' (Default: csv)
+        :param save_as: Save the results to a file instead of returning the raw result
+        :param poll_timeout: Seconds to wait between export result polls (Default: 5 seconds)
+        :return: CSV or XSLX data from the export, ZIP if multiple types supplied
+        """
+
+        #Initiate an export and get the polling token
+        export = self.api_call('/export', method = 'POST', data = dict(type = type, export_format = export_format))
+
+        #Begin export results poll waiting loop
+        while True:
+            self.logger.debug('Export poll wait.')
+            time.sleep(poll_timeout)
+            result = self.api_call(f"/export/{export['token']}", per_page = None)
+            if result['state'] in ('queued','processing'):
+                continue
+            if result['state'] == 'done':
+                break
+            self.logger.error(f'Export request failed: {result=}')
+            raise
+
+        #Save or Return the exported data
+        result = self.api_call(result["url"], per_page = None, raw = True)
+        if save_as:
+            with open(save_as, 'wb') as file:
+                file.write(result)
+            return True
+        return result
 
     def custom_fields_to_object(self, custom_fields):
         """

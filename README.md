@@ -34,12 +34,11 @@ This module is used to interact with the Xurrent API. It provides a set of class
 
     # Plain API Call
     uri = "/requests?subject=Example Subject"
-    connection_object.api_call(uri, 'GET')
+    x_api_helper.api_call(uri, 'GET')
 
     # Convert node ID
-    helper.decode_api_id('ZmFiaWFuc3RlaW5lci4yNDEyMTAxMDE0MTJANG1lLWRlbW8uY29tL1JlcS83MDU3NTU') # fabiansteiner.241210101412@4me-demo.com/Req/705755
+    x_api_helper.decode_api_id('ZmFiaWFuc3RlaW5lci4yNDEyMTAxMDE0MTJANG1lLWRlbW8uY29tL1JlcS83MDU3NTU') # fabiansteiner.241210101412@4me-demo.com/Req/705755
     # this can be used to derive the ID from the nodeID
-
 ```
 
 #### Configuration Items
@@ -68,7 +67,7 @@ This module is used to interact with the Xurrent API. It provides a set of class
     # creating without specifying the label, takes the last ci of the product and increments the label
     # example: "wdc-02" -> "wdc-03"
     data = {"name": "New CI", "type": "software", "status": "in_production", "product_id": "<product_id>"}
-    new_ci = ConfigurationItem.create(api_helper, data)
+    new_ci = ConfigurationItem.create(x_api_helper, data)
     print(new_ci)
 
     # Archive a Configuration Item (must be in an allowed state)
@@ -115,7 +114,6 @@ This module is used to interact with the Xurrent API. It provides a set of class
     people.trash()
     #restore
     people.restore()
-
 ```
 
 #### Requests
@@ -142,7 +140,6 @@ This module is used to interact with the Xurrent API. It provides a set of class
     #restore
 
     request.restore()
-    
 
 ```
 
@@ -212,7 +209,6 @@ This module is used to interact with the Xurrent API. It provides a set of class
         "text": "This is a test note",
         "internal": True
     })
-
 ```
 
 #### Tasks
@@ -240,8 +236,6 @@ This module is used to interact with the Xurrent API. It provides a set of class
     task.reject()
     #approve
     task.approve()
-
-
 ```
 
 #### Teams
@@ -271,7 +265,6 @@ This module is used to interact with the Xurrent API. It provides a set of class
 #### Workflows
 
 ```python
-
     from xurrent.workflows import Workflow
 
     workflow = Workflow.get_by_id(x_api_helper, <id>)
@@ -283,4 +276,17 @@ This module is used to interact with the Xurrent API. It provides a set of class
     #close with completion reason and note
     workflow.close(completion_reason="withdrawn", note="This is a test note")
 
+```
+
+### Bulk Export
+```python
+    import csv
+    import io
+
+    #Request a bulk export of "people"
+    csvdata = x_api_helper.bulk_export("people")
+
+    #Iterate fetched export rows with the csv library, where row 1 defines the column names
+    for row in csv.DictReader(io.StringIO(csvdata)):
+        print(row["Employee Number"])
 ```
