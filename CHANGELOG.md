@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Core: support OAuth client credentials authentication via `client_id` and `client_secret` in `XurrentApiHelper` while maintaining API key compatibility.
+
 ### Changed
 
 #### `.github/workflows/release.yml`

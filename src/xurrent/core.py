@@ -7,6 +7,8 @@ import logging
 import json
 import re
 import base64
+from logging import Logger
+from typing import Optional, List
 
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
@@ -46,28 +48,94 @@ class XurrentApiHelper:
     api_user: Person # Forward declaration with a string
     api_user_teams: List[Team] # Forward declaration with a string
 
-    def __init__(self, base_url, api_key, api_account,resolve_user=True, logger: Logger=None):
+    def __init__(
+        self,
+        base_url,
+        api_key=None,
+        api_account=None,
+        resolve_user=True,
+        logger: Logger=None,
+        client_id: Optional[str]=None,
+        client_secret: Optional[str]=None
+    ):
         """
         Initialize the Xurrent API helper.
 
         :param base_url: Base URL of the Xurrent API
         :param api_key: API key to authenticate with
         :param api_account: Account name to use
+        :param client_id: OAuth client ID to use when fetching an access token
+        :param client_secret: OAuth client secret to use when fetching an access token
         :param resolve_user: Resolve the API user and their teams (default: True)
         :param logger: Logger to use (optional), otherwise a new logger is created
         """
         self.base_url = base_url
-        self.api_key = api_key
         self.api_account = api_account
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._token_expires_at: Optional[float] = None
+
+        if bool(api_key) == bool(client_id and client_secret):
+            raise ValueError('Provide either api_key or both client_id and client_secret, but not both.')
+        if not self.api_account:
+            raise ValueError('api_account must be provided.')
+
         if logger:
             self.logger = logger
         else:
             self.logger = self.create_logger(False)
+        if client_id or client_secret:
+            if not (client_id and client_secret):
+                raise ValueError('Both client_id and client_secret are required for OAuth authentication.')
+            self.api_key = None
+            self._obtain_access_token()
+        else:
+            self.api_key = api_key
         if resolve_user:
             # Import Person lazily
             from .people import Person
             self.api_user = Person.get_me(self)
             self.api_user_teams = self.api_user.get_teams()
+
+    def _ensure_access_token(self):
+        """Ensure that a valid access token is available."""
+        if not self._client_id:
+            return
+
+        needs_refresh = self.api_key is None
+        if self._token_expires_at is not None:
+            needs_refresh = needs_refresh or time.time() >= self._token_expires_at
+
+        if needs_refresh:
+            self._obtain_access_token()
+
+    def _obtain_access_token(self):
+        """Fetch a new OAuth access token using the client credentials grant."""
+        token_url = 'https://oauth.xurrent.com/token'
+        payload = {
+            'client_id': self._client_id,
+            'client_secret': self._client_secret,
+            'grant_type': 'client_credentials'
+        }
+
+        try:
+            response = requests.post(token_url, data=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as exc:
+            self.logger.error(f'Failed to obtain OAuth access token: {exc}')
+            raise
+
+        data = response.json()
+        access_token = data.get('access_token')
+        if not access_token:
+            self.logger.error('OAuth token response did not contain an access_token.')
+            raise ValueError('OAuth token response did not contain an access_token.')
+
+        expires_in = data.get('expires_in', 3600)
+        buffer_seconds = 60
+        self._token_expires_at = time.time() + max(expires_in - buffer_seconds, 0)
+        self.api_key = access_token
+        self.logger.debug('Obtained new OAuth access token.')
 
     def __append_per_page(self, uri, per_page=100):
         """
@@ -142,6 +210,8 @@ class XurrentApiHelper:
         # Ensure the base URL is included in the URI
         if not uri.startswith(self.base_url):
             uri = f'{self.base_url}{uri}'
+
+        self._ensure_access_token()
 
         headers = {
             'Authorization': f'Bearer {self.api_key}',
