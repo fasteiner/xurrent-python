@@ -91,6 +91,12 @@ class XurrentApiHelper:
             self._obtain_access_token()
         else:
             self.api_key = api_key
+        #Create a requests session to maintain persistent connections, with preset headers
+        self.__session = requests.Session()
+        self.__session.headers.update({
+            'Authorization': f'Bearer {self.api_key}',
+            'x-xurrent-account': self.api_account
+        })
         if resolve_user:
             # Import Person lazily
             from .people import Person
@@ -143,6 +149,13 @@ class XurrentApiHelper:
         buffer_seconds = 60
         self._token_expires_at = time.time() + max(expires_in - buffer_seconds, 0)
         self.api_key = access_token
+        
+        # Update session headers if the session exists
+        if hasattr(self, '__session'):
+            self.__session.headers.update({
+                'Authorization': f'Bearer {self.api_key}'
+            })
+            
         self.logger.debug('Obtained new OAuth access token.')
 
     def __append_per_page(self, uri, per_page=100):
@@ -195,29 +208,36 @@ class XurrentApiHelper:
         logger.addHandler(log_stream)
         return logger
 
-    def set_log_level(self, level: LogLevel):
+    def set_log_level(self, level):
         """
         Set the log level for the logger and all handlers.
 
-        :param level: Log level to set
+        :param level: Log level to set (can be a string, int, or LogLevel enum)
         """
-        self.logger.setLevel(level)
+        # Handle different types of input
+        if isinstance(level, LogLevel):
+            log_level = level.value
+        else:
+            log_level = level
+            
+        self.logger.setLevel(log_level)
         for handler in self.logger.handlers:
-            handler.setLevel(level)
+            handler.setLevel(log_level)
 
 
-    def api_call(self, uri: str, method='GET', data=None, per_page=100):
+    def api_call(self, uri: str, method='GET', data=None, per_page=100, raw=False):
         """
         Make a call to the Xurrent API with support for rate limiting and pagination.
         Automatically handles 401 responses by refreshing the OAuth token if client_id and client_secret are provided.
         :param uri: URI to call
-        :param method: HTTP method to use
+        :param method: HTTP method to use (default: GET)
         :param data: Data to send with the request (optional)
-        :param per_page: Number of records per page for GET requests (default: 100)
+        :param per_page: Number of records per page for GET requests, setting to 0/None disables pagination (default: 100)
+        :param raw: Do not process the request result, e.g. in the case of non-JSON data (default: False)
         :return: JSON response from the API or aggregated data for paginated GET
         """
-        # Ensure the base URL is included in the URI
-        if not uri.startswith(self.base_url):
+        # Ensure the base URL is included in the URI, if no protocol (https://) specified
+        if not uri.startswith(self.base_url) and "://" not in uri[:10]:
             uri = f'{self.base_url}{uri}'
 
         def do_request():
@@ -231,26 +251,49 @@ class XurrentApiHelper:
             while next_page_url:
                 try:
                     # Append pagination parameters for GET requests
-                    if method == 'GET':
+                    if per_page and method == 'GET':
                         next_page_url = self.__append_per_page(next_page_url, per_page)
+                    
+                    # Log the request
                     self.logger.debug(f'{method} {next_page_url} {data if method != "GET" else ""}')
-                    response = requests.request(method, next_page_url, headers=headers, json=data)
+                    
+                    # Make the HTTP request - use session if available, otherwise direct request
+                    if hasattr(self, '__session'):
+                        response = self.__session.request(method, next_page_url, json=data)
+                    else:
+                        response = requests.request(method, next_page_url, headers=headers, json=data)
+                    
                     if response.status_code == 204:
                         return None
+                    
+                    # Handle rate limiting (429 status code)
                     if response.status_code == 429:
-                        retry_after = int(response.headers.get('Retry-After', 1))
+                        retry_after = int(response.headers.get('Retry-After', 1))  # Default to 1 second if not provided
                         self.logger.warning(f'Rate limit reached. Retrying after {retry_after} seconds...')
                         time.sleep(retry_after)
                         continue
+                    
+                    # Handle 401 Unauthorized - signal to outer logic to refresh token and retry
                     if response.status_code == 401 and self._client_id:
-                        # Signal to outer logic to refresh token and retry
                         return '401-refresh'
+                    
+                    # Check for other non-success status codes
                     if not response.ok:
                         self.logger.error(f'Error in request: {response.status_code} - {response.text}')
                         response.raise_for_status()
+
+                    # Stop here if we shall not process or interpret the returned data
+                    if raw:
+                        return response.content
+                    
+                    # Process response
                     response_data = response.json()
+                    
+                    # For GET requests, handle pagination
                     if method == 'GET' and isinstance(response_data, list):
                         aggregated_data.extend(response_data)
+                        
+                        # Parse the 'Link' header to find the 'next' page URL
                         link_header = response.headers.get('Link')
                         if link_header:
                             links = {rel.strip(): url.strip('<>') for url, rel in
@@ -272,6 +315,68 @@ class XurrentApiHelper:
             self.logger.info('401 Unauthorized received, refreshing OAuth token and retrying request...')
             self._obtain_access_token()
             result = do_request()
+            # If we still get the 401-refresh sentinel after a token refresh, something is wrong with auth
+            if result == '401-refresh':
+                self.logger.error('Still receiving 401 Unauthorized after token refresh, authentication failed')
+                raise requests.exceptions.HTTPError('Authentication failed: 401 Unauthorized received even after token refresh')
+        return result
+
+    def bulk_export(self, type: str, export_format='csv', save_as=None, poll_timeout=5):
+        """
+        Make a call to the Xurrent API to perform a bulk export
+        :param type: Resource type(s) to download, comma-delimited
+        :param export_format: either 'csv' or 'xlsx' (Default: csv)
+        :param save_as: Save the results to a file instead of returning the raw result
+        :param poll_timeout: Seconds to wait between export result polls (Default: 5 seconds)
+        :return: CSV or XSLX data from the export, ZIP if multiple types supplied
+        """
+
+        #Initiate an export and get the polling token
+        export = self.api_call('/export', method='POST', data=dict(type=type, export_format=export_format))
+        
+        if not isinstance(export, dict) or 'token' not in export:
+            self.logger.error(f'Export initialization failed: {export}')
+            raise ValueError('Invalid export response: missing token')
+        
+        token = export['token']
+
+        #Begin export results poll waiting loop
+        export_result = None
+        while True:
+            self.logger.debug('Export poll wait.')
+            time.sleep(poll_timeout)
+            poll_result = self.api_call(f"/export/{token}", per_page=0)
+            
+            if not isinstance(poll_result, dict) or 'state' not in poll_result:
+                self.logger.error(f'Export polling failed: {poll_result}')
+                raise ValueError('Invalid poll response: missing state')
+                
+            if poll_result['state'] in ('queued', 'processing'):
+                continue
+            elif poll_result['state'] == 'done':
+                export_result = poll_result
+                break
+            else:
+                self.logger.error(f'Export request failed: {poll_result=}')
+                raise RuntimeError(f'Export failed with state: {poll_result["state"]}')
+
+        if 'url' not in export_result:
+            self.logger.error(f'Export result missing URL: {export_result}')
+            raise ValueError('Export result missing download URL')
+            
+        #Save or Return the exported data
+        download_url = export_result["url"]
+        result = self.api_call(download_url, per_page=0, raw=True)
+        
+        # Check if result is bytes, otherwise provide a general error
+        if not isinstance(result, bytes):
+            self.logger.error('Expected bytes response for export download')
+            raise TypeError('Export download returned unexpected type')
+            
+        if save_as:
+            with open(save_as, 'wb') as file:
+                file.write(result)
+            return True
         return result
 
     def custom_fields_to_object(self, custom_fields):

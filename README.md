@@ -39,7 +39,6 @@ This module is used to interact with the Xurrent API. It provides a set of class
     # Convert node ID
     x_api_helper.decode_api_id('ZmFiaWFuc3RlaW5lci4yNDEyMTAxMDE0MTJANG1lLWRlbW8uY29tL1JlcS83MDU3NTU') # fabiansteiner.241210101412@4me-demo.com/Req/705755
     # this can be used to derive the ID from the nodeID
-
 ```
 
 #### Using OAuth client credentials
@@ -92,7 +91,7 @@ continues to work unchanged, but only one authentication method may be used per 
     # creating without specifying the label, takes the last ci of the product and increments the label
     # example: "wdc-02" -> "wdc-03"
     data = {"name": "New CI", "type": "software", "status": "in_production", "product_id": "<product_id>"}
-    new_ci = ConfigurationItem.create(api_helper, data)
+    new_ci = ConfigurationItem.create(x_api_helper, data)
     print(new_ci)
 
     # Archive a Configuration Item (must be in an allowed state)
@@ -139,7 +138,6 @@ continues to work unchanged, but only one authentication method may be used per 
     people.trash()
     #restore
     people.restore()
-
 ```
 
 #### Requests
@@ -166,7 +164,6 @@ continues to work unchanged, but only one authentication method may be used per 
     #restore
 
     request.restore()
-    
 
 ```
 
@@ -236,7 +233,6 @@ continues to work unchanged, but only one authentication method may be used per 
         "text": "This is a test note",
         "internal": True
     })
-
 ```
 
 #### Tasks
@@ -264,8 +260,6 @@ continues to work unchanged, but only one authentication method may be used per 
     task.reject()
     #approve
     task.approve()
-
-
 ```
 
 #### Teams
@@ -295,7 +289,6 @@ continues to work unchanged, but only one authentication method may be used per 
 #### Workflows
 
 ```python
-
     from xurrent.workflows import Workflow
 
     workflow = Workflow.get_by_id(x_api_helper, <id>)
@@ -307,4 +300,17 @@ continues to work unchanged, but only one authentication method may be used per 
     #close with completion reason and note
     workflow.close(completion_reason="withdrawn", note="This is a test note")
 
+```
+
+### Bulk Export
+```python
+    import csv
+    import io
+
+    #Request a bulk export of "people"
+    csvdata = x_api_helper.bulk_export("people")
+
+    #Iterate fetched export rows with the csv library, where row 1 defines the column names
+    for row in csv.DictReader(io.StringIO(csvdata)):
+        print(row["Employee Number"])
 ```

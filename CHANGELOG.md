@@ -11,7 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Core: support OAuth client credentials authentication via `client_id` and `client_secret` in `XurrentApiHelper` while maintaining API key compatibility.
 - Core: OAuth token endpoint TLD is now dynamically derived from the API base URL, ensuring the same top-level domain is used for both API and OAuth.
-- Core: When using OAuth, if a 401 Unauthorized error is received, the token is automatically refreshed and the API call is retried once.
+- Core: When using OAuth, if a 401 Unauthorized error is received, the token is automatically refreshed and the API call is retried once. If authentication still fails after token refresh, an explicit HTTPError is raised.
+
+## [0.10.0] - 2025-08-16
+
+### Added
+
+- Core: Added bulk\_export() function to dowload bulk record data
+
+### Changed
+
+- Core: Switched to a requests.session object to enable persistent connection recycling.
+- Core: Provide options to disable pagination and prevent api result's JSON parsing (in association with bulk\_export).
+
+### Fixed
+
+- Core: do not prepend the base\_url to the uri of an api\_call if a protocol is already included (i.e. uri is already fully-formed).
+
+## [0.9.1] - 2025-06-13
 
 ### Changed
 
@@ -271,7 +288,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
 
-[0.8.1]: https://github.com/fasteiner/xurrent-python/compare/v0.8.0...v0.8.1
+[0.10.0]: https://github.com/fasteiner/xurrent-python/compare/v0.9.1...v0.10.0
+
+[0.9.1]: https://github.com/fasteiner/xurrent-python/compare/v0.9.0...v0.9.1
+
+[0.9.0]: https://github.com/fasteiner/xurrent-python/compare/v0.8.0...v0.9.0
 
 [0.8.0]: https://github.com/fasteiner/xurrent-python/compare/v0.7.0...v0.8.0
 
