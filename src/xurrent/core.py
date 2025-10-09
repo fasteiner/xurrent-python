@@ -117,15 +117,24 @@ class XurrentApiHelper:
 
     def _obtain_access_token(self):
         """Fetch a new OAuth access token using the client credentials grant."""
-        # Dynamically determine the TLD from the base_url
+        # Dynamically determine the domain from the base_url and preserve regional subdomains
         import urllib.parse
         parsed = urllib.parse.urlparse(self.base_url)
-        # Extract the netloc (e.g. api.xurrent.com) and replace the subdomain with 'oauth'
+        # Extract the netloc (e.g. api.xurrent.com, api.au.xurrent.com) and replace 'api' with 'oauth'
         netloc_parts = parsed.netloc.split('.')
         if len(netloc_parts) < 2:
-            raise ValueError('Invalid base_url for extracting TLD')
-        tld = '.'.join(netloc_parts[-2:])
-        token_url = f'https://oauth.{tld}/token'
+            raise ValueError('Invalid base_url for extracting domain')
+            
+        # Replace the first part (assumed to be 'api') with 'oauth'
+        if netloc_parts[0] == 'api':
+            netloc_parts[0] = 'oauth'
+        else:
+            self.logger.warning(f"Expected first domain part to be 'api', got '{netloc_parts[0]}'. Proceeding anyway.")
+            netloc_parts[0] = 'oauth'
+            
+        # Reconstruct the domain preserving all parts including regional subdomains
+        oauth_domain = '.'.join(netloc_parts)
+        token_url = f'https://{oauth_domain}/token'
         payload = {
             'client_id': self._client_id,
             'client_secret': self._client_secret,
