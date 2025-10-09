@@ -111,7 +111,15 @@ class XurrentApiHelper:
 
     def _obtain_access_token(self):
         """Fetch a new OAuth access token using the client credentials grant."""
-        token_url = 'https://oauth.xurrent.com/token'
+        # Dynamically determine the TLD from the base_url
+        import urllib.parse
+        parsed = urllib.parse.urlparse(self.base_url)
+        # Extract the netloc (e.g. api.xurrent.com) and replace the subdomain with 'oauth'
+        netloc_parts = parsed.netloc.split('.')
+        if len(netloc_parts) < 2:
+            raise ValueError('Invalid base_url for extracting TLD')
+        tld = '.'.join(netloc_parts[-2:])
+        token_url = f'https://oauth.{tld}/token'
         payload = {
             'client_id': self._client_id,
             'client_secret': self._client_secret,
@@ -201,6 +209,7 @@ class XurrentApiHelper:
     def api_call(self, uri: str, method='GET', data=None, per_page=100):
         """
         Make a call to the Xurrent API with support for rate limiting and pagination.
+        Automatically handles 401 responses by refreshing the OAuth token if client_id and client_secret are provided.
         :param uri: URI to call
         :param method: HTTP method to use
         :param data: Data to send with the request (optional)
@@ -211,70 +220,59 @@ class XurrentApiHelper:
         if not uri.startswith(self.base_url):
             uri = f'{self.base_url}{uri}'
 
-        self._ensure_access_token()
-
-        headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'x-xurrent-account': self.api_account
-        }
-
-        aggregated_data = []
-        next_page_url = uri
-
-        while next_page_url:
-            try:
-                # Append pagination parameters for GET requests
-                if method == 'GET':
-                    # if contains ? or does not end with /, append per_page
-                    next_page_url = self.__append_per_page(next_page_url, per_page)
-
-                # Log the request
-                self.logger.debug(f'{method} {next_page_url} {data if method != "GET" else ""}')
-
-                # Make the HTTP request
-                response = requests.request(method, next_page_url, headers=headers, json=data)
-
-                if response.status_code == 204:
-                    return None
-
-                # Handle rate limiting (429 status code)
-                if response.status_code == 429:
-                    retry_after = int(response.headers.get('Retry-After', 1))  # Default to 1 second if not provided
-                    self.logger.warning(f'Rate limit reached. Retrying after {retry_after} seconds...')
-                    time.sleep(retry_after)
-                    continue
-
-                # Check for other non-success status codes
-                if not response.ok:
-                    self.logger.error(f'Error in request: {response.status_code} - {response.text}')
-                    response.raise_for_status()
-
-                # Process response
-                response_data = response.json()
-
-                # For GET requests, handle pagination
-                if method == 'GET' and isinstance(response_data, list):
-                    aggregated_data.extend(response_data)
-
-                    # Parse the 'Link' header to find the 'next' page URL
-                    link_header = response.headers.get('Link')
-                    if link_header:
-                        links = {rel.strip(): url.strip('<>') for url, rel in
-                                (link.split(';') for link in link_header.split(','))}
-                        next_page_url = links.get('rel="next"')
-                        if next_page_url:
-                            next_page_url = next_page_url.replace('<', '').replace('>', '')
+        def do_request():
+            self._ensure_access_token()
+            headers = {
+                'Authorization': f'Bearer {self.api_key}',
+                'x-xurrent-account': self.api_account
+            }
+            aggregated_data = []
+            next_page_url = uri
+            while next_page_url:
+                try:
+                    # Append pagination parameters for GET requests
+                    if method == 'GET':
+                        next_page_url = self.__append_per_page(next_page_url, per_page)
+                    self.logger.debug(f'{method} {next_page_url} {data if method != "GET" else ""}')
+                    response = requests.request(method, next_page_url, headers=headers, json=data)
+                    if response.status_code == 204:
+                        return None
+                    if response.status_code == 429:
+                        retry_after = int(response.headers.get('Retry-After', 1))
+                        self.logger.warning(f'Rate limit reached. Retrying after {retry_after} seconds...')
+                        time.sleep(retry_after)
+                        continue
+                    if response.status_code == 401 and self._client_id:
+                        # Signal to outer logic to refresh token and retry
+                        return '401-refresh'
+                    if not response.ok:
+                        self.logger.error(f'Error in request: {response.status_code} - {response.text}')
+                        response.raise_for_status()
+                    response_data = response.json()
+                    if method == 'GET' and isinstance(response_data, list):
+                        aggregated_data.extend(response_data)
+                        link_header = response.headers.get('Link')
+                        if link_header:
+                            links = {rel.strip(): url.strip('<>') for url, rel in
+                                    (link.split(';') for link in link_header.split(','))}
+                            next_page_url = links.get('rel="next"')
+                            if next_page_url:
+                                next_page_url = next_page_url.replace('<', '').replace('>', '')
+                        else:
+                            next_page_url = None
                     else:
-                        next_page_url = None
-                else:
-                    return response_data  # Return for non-GET requests
+                        return response_data
+                except requests.exceptions.RequestException as e:
+                    self.logger.error(f'HTTP request failed: {e}')
+                    raise
+            return aggregated_data
 
-            except requests.exceptions.RequestException as e:
-                self.logger.error(f'HTTP request failed: {e}')
-                raise
-
-        # Return aggregated results for paginated GET
-        return aggregated_data
+        result = do_request()
+        if result == '401-refresh':
+            self.logger.info('401 Unauthorized received, refreshing OAuth token and retrying request...')
+            self._obtain_access_token()
+            result = do_request()
+        return result
 
     def custom_fields_to_object(self, custom_fields):
         """
