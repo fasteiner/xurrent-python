@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Core: support OAuth client credentials authentication via `client_id` and `client_secret` in `XurrentApiHelper` while maintaining API key compatibility.
+- Core: OAuth token endpoint TLD is now dynamically derived from the API base URL, ensuring the same top-level domain is used for both API and OAuth.
+- Core: When using OAuth, if a 401 Unauthorized error is received, the token is automatically refreshed and the API call is retried once.
+
 ### Changed
 
 #### `.github/workflows/release.yml`
