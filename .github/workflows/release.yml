@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0  # Required for GitVersion to work correctly
 
       - name: Install GitVersion
-        uses: GitTools/actions/gitversion/setup@v4
+        uses: GitTools/actions/gitversion/setup@v3
         with:
           versionSpec: '5.x'
 
