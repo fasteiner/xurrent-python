@@ -32,7 +32,7 @@ jobs:
 
       - name: Determine Version
         id: gitversion
-        uses: GitTools/actions/gitversion/execute@v4
+        uses: GitTools/actions/gitversion/execute@v3
 
       - name: Extract Release Notes from Changelog
         id: extract-changelog
