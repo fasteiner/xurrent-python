@@ -18,18 +18,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Required for GitVersion to work correctly
 
       - name: Install GitVersion
-        uses: GitTools/actions/gitversion/setup@v0
+        uses: GitTools/actions/gitversion/setup@v3
         with:
           versionSpec: '5.x'
 
       - name: Determine Version
         id: gitversion
-        uses: GitTools/actions/gitversion/execute@v0
+        uses: GitTools/actions/gitversion/execute@v3
 
       - name: Extract Release Notes from Changelog
         id: extract-changelog
@@ -111,7 +111,7 @@ jobs:
 
       - name: Commit Updated CHANGELOG.md
         if: github.ref == 'refs/heads/main'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Update CHANGELOG for release ${{ steps.effective-version.outputs.effective_version }}"
           file_pattern: "CHANGELOG.md"
@@ -137,7 +137,7 @@ jobs:
           EOF
 
       - name: Commit Updated pyproject.toml
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Update pyproject.toml for release ${{ steps.effective-version.outputs.effective_version }}"
           file_pattern: "pyproject.toml"
@@ -155,7 +155,7 @@ jobs:
 
       - name: Create GitHub Release
         if: env.python_changed == 'true'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.effective-version.outputs.effective_version }}
           name: Release v${{ steps.effective-version.outputs.effective_version }}

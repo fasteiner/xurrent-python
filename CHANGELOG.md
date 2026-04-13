@@ -5,9 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Docs: added `CLAUDE.md` with setup instructions, test commands, architecture overview, and changelog requirements for Claude Code.
+- Products: added `Product` class with `ProductPredefinedFilter` and `ProductDepreciationMethod` enums; supports CRUD, enable/disable, and CI listing.
+- ProductCategories: added `ProductCategory` class with `ProductCategoryRuleSet` enum; supports CRUD and enable/disable.
+- Organizations: added `Organization` class with `OrganizationPredefinedFilter` enum; supports CRUD, enable/disable, archive/trash/restore, people and child org listing.
+- Sites: added `Site` class with `SitePredefinedFilter` enum; supports CRUD, enable/disable, archive/trash/restore.
+- OutOfOfficePeriods: added `OutOfOfficePeriod` class with `OutOfOfficePeriodPredefinedFilter` enum; supports CRUD and DELETE.
+- Holidays: added `Holiday` class; supports CRUD.
+- CustomCollections: added `CustomCollection` class with `CustomCollectionPredefinedFilter` enum; supports CRUD, enable/disable, and element listing.
+- CustomCollectionElements: added `CustomCollectionElement` class with `CustomCollectionElementPredefinedFilter` enum; supports CRUD and enable/disable.
+- ShopArticleCategories: added `ShopArticleCategory` class with `ShopArticleCategoryPredefinedFilter` enum; supports CRUD.
+- ShopArticles: added `ShopArticle` class with `ShopArticlePredefinedFilter` and `ShopArticleRecurringPeriod` enums; supports CRUD and enable/disable.
+- ShopOrderLines: added `ShopOrderLine` class with `ShopOrderLinePredefinedFilter`, `ShopOrderLineStatus`, and `ShopOrderLineRecurringPeriod` enums; supports CRUD.
+- Services: added `Service` class with `ServicePredefinedFilter` enum; supports CRUD and enable/disable.
+- Calendars: added `Calendar` class with `CalendarPredefinedFilter` enum; supports CRUD and enable/disable.
+- TimeAllocations: added `TimeAllocation` class with `TimeAllocationPredefinedFilter` and category enums; supports CRUD and enable/disable.
+- EffortClasses: added `EffortClass` class with `EffortClassPredefinedFilter` enum; supports CRUD and enable/disable.
+- RequestTemplates: added `RequestTemplate` class with `RequestTemplatePredefinedFilter`, `RequestTemplateCategory`, `RequestTemplateStatus`, and `RequestTemplateImpact` enums; supports CRUD and enable/disable.
+- UiExtensions: added `UiExtension` class with `UiExtensionCategory` enum; supports CRUD and enable/disable.
+- WorkflowTemplates: added `WorkflowTemplate` class with `WorkflowTemplatePredefinedFilter` and `WorkflowTemplateCategory` enums; supports CRUD and enable/disable.
+
+### Changed
+
+- People: `Person` now deserializes `site` (→ `Site`) and `organization` (→ `Organization`) references; also fixed a `People.from_data` typo in `update()`.
+- ConfigurationItems: `ConfigurationItem` now deserializes the `product` reference (→ `Product`).
+- Products: `Product` now deserializes the `category` reference (→ `ProductCategory`).
+- CI: updated GitHub Actions in `release.yml` — `GitTools/actions` `v0` → `v3` (latest version compatible with GitVersion 5.x; v4+ requires GitVersion ≥6.1), `stefanzweifel/git-auto-commit-action` `v5` → `v7`, `softprops/action-gh-release` `v1` → `v2`.
+- CI: updated `python-package.yml` — `actions/setup-python` `v3` → `v5`; added `pip install .` so the package itself is installed before tests run; added a `flake8` lint step (syntax errors and undefined names only); split test run into separate `Unit tests` and `Integration tests` steps so unit tests always run regardless of credentials; added Python 3.14 to the test matrix.
+
 ## [0.11.0] - 2026-04-13
 
 ### Added
+
 
 - Core: support OAuth client credentials authentication via `client_id` and `client_secret` in `XurrentApiHelper` while maintaining API key compatibility.
 - Core: The OAuth token endpoint now dynamically determines the domain from `base_url`, preserving any regional subdomains to ensure consistency between API and OAuth endpoints.

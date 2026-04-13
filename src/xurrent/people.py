@@ -19,11 +19,21 @@ class Person(JsonSerializableDict):
     #https://developer.xurrent.com/v1/people/
     __resourceUrl__ = 'people'
 
-    def __init__(self, connection_object: XurrentApiHelper, id, name: str = None, primary_email: str = None,**kwargs):
+    def __init__(self, connection_object: XurrentApiHelper, id, name: str = None, primary_email: str = None,
+                 site=None, organization=None, **kwargs):
         self._connection_object = connection_object
         self.id = id
         self.name = name
         self.primary_email = primary_email
+
+        from .sites import Site
+        self.site = (site if isinstance(site, Site)
+                     else Site.from_data(connection_object, site) if site else None)
+
+        from .organizations import Organization
+        self.organization = (organization if isinstance(organization, Organization)
+                             else Organization.from_data(connection_object, organization) if organization else None)
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -82,7 +92,7 @@ class Person(JsonSerializableDict):
     def update(self, data):
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        return People.from_data(self._connection_object,response)
+        return Person.from_data(self._connection_object, response)
     
     def disable(self, prefix: str = '', postfix: str = ''):
         """
