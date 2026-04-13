@@ -6,6 +6,9 @@ on:
       - main
       - Dev
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write
 
@@ -23,13 +26,13 @@ jobs:
           fetch-depth: 0  # Required for GitVersion to work correctly
 
       - name: Install GitVersion
-        uses: GitTools/actions/gitversion/setup@v3
+        uses: GitTools/actions/gitversion/setup@v4
         with:
           versionSpec: '5.x'
 
       - name: Determine Version
         id: gitversion
-        uses: GitTools/actions/gitversion/execute@v3
+        uses: GitTools/actions/gitversion/execute@v4
 
       - name: Extract Release Notes from Changelog
         id: extract-changelog
@@ -47,10 +50,10 @@ jobs:
 
           if echo "$CHANGED_FILES" | grep -E '\.py$'; then
             echo "python_changed=true" >> $GITHUB_ENV
-            echo "::set-output name=python_changed::true"
+            echo "python_changed=true" >> $GITHUB_OUTPUT
           else
             echo "python_changed=false" >> $GITHUB_ENV
-            echo "::set-output name=python_changed::false"
+            echo "python_changed=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Set Version Bump Type from GitVersion
@@ -100,7 +103,7 @@ jobs:
           fi
 
           echo "effective_version=$EFFECTIVE_VERSION" >> $GITHUB_ENV
-          echo "::set-output name=effective_version::$EFFECTIVE_VERSION"
+          echo "effective_version=$EFFECTIVE_VERSION" >> $GITHUB_OUTPUT
 
       - name: Update CHANGELOG.md
         if: github.ref == 'refs/heads/main'
