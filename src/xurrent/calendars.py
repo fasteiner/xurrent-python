@@ -78,3 +78,31 @@ class Calendar(JsonSerializableDict):
 
     def disable(self) -> T:
         return self.update({'disabled': True})
+
+    def get_duration(self, start: str, end: str, time_zone: str = None) -> dict:
+        """
+        Calculate the duration between two timestamps according to the calendar.
+
+        :param start: Start datetime string (ISO 8601)
+        :param end: End datetime string (ISO 8601)
+        :param time_zone: Optional time zone name
+        :return: Duration data from the API
+        """
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/duration'
+        params = f'start={start}&end={end}'
+        if time_zone:
+            params += f'&time_zone={time_zone}'
+        uri += f'?{params}'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_hours(self) -> List[dict]:
+        """Retrieve the working hours of the calendar."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/hours'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_holidays(self) -> List:
+        """Retrieve the holidays associated with this calendar."""
+        from .holidays import Holiday
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/holidays'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Holiday.from_data(self._connection_object, h) for h in response]

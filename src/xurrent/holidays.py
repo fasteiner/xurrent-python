@@ -64,3 +64,10 @@ class Holiday(JsonSerializableDict):
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
+
+    def get_calendars(self) -> List:
+        """Retrieve calendars that contain this holiday."""
+        from .calendars import Calendar
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/calendars'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Calendar.from_data(self._connection_object, c) for c in response]

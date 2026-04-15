@@ -129,3 +129,45 @@ class Service(JsonSerializableDict):
 
     def disable(self, prefix: str = '', postfix: str = '') -> T:
         return self.update({'disabled': True, 'name': f'{prefix}{self.name}{postfix}'})
+
+    def get_workflows(self, queryfilter: dict = None) -> List:
+        """Retrieve workflows for this service instance."""
+        from .workflows import Workflow
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/workflows'
+        if queryfilter:
+            uri += '?' + self._connection_object.create_filter_string(queryfilter)
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Workflow.from_data(self._connection_object, w) for w in response]
+
+    def get_request_templates(self) -> List:
+        """Retrieve request templates for this service instance."""
+        from .request_templates import RequestTemplate
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/request_templates'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [RequestTemplate.from_data(self._connection_object, rt) for rt in response]
+
+    def get_risks(self) -> List:
+        """Retrieve risks for this service instance."""
+        from .risks import Risk
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/risks'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Risk.from_data(self._connection_object, r) for r in response]
+
+    def get_service_instances(self) -> List:
+        """Retrieve service instances for this service."""
+        from .service_instances import ServiceInstance
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/service_instances'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ServiceInstance.from_data(self._connection_object, si) for si in response]
+
+    def get_slas(self) -> List[dict]:
+        """Retrieve SLAs for this service instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/slas'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_service_offerings(self) -> List:
+        """Retrieve service offerings for this service."""
+        from .service_offerings import ServiceOffering
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/service_offerings'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ServiceOffering.from_data(self._connection_object, so) for so in response]

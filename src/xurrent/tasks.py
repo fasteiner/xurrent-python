@@ -172,3 +172,56 @@ class Task(JsonSerializableDict):
         uri = f'{connection_object.base_url}/workflows/{workflowID}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
+
+    def get_notes(self, queryfilter: dict = None) -> List[dict]:
+        """Retrieve all notes associated with the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        if queryfilter:
+            uri += '?' + self._connection_object.create_filter_string(queryfilter)
+        return self._connection_object.api_call(uri, 'GET')
+
+    def add_note(self, note) -> dict:
+        """Add a note to the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        if isinstance(note, dict):
+            return self._connection_object.api_call(uri, 'POST', note)
+        elif isinstance(note, str):
+            return self._connection_object.api_call(uri, 'POST', {'text': note})
+        else:
+            raise TypeError(f"Expected 'note' to be a str or dict, got {type(note).__name__}")
+
+    def get_approvals(self) -> List[dict]:
+        """Retrieve all approvals for the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/approvals'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_cis(self) -> List:
+        """Retrieve configuration items associated with the current task instance."""
+        from .configuration_items import ConfigurationItem
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/cis'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ConfigurationItem.from_data(self._connection_object, ci) for ci in response]
+
+    def get_predecessors(self) -> List:
+        """Retrieve predecessor tasks for the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/predecessors'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Task.from_data(self._connection_object, t) for t in response]
+
+    def get_successors(self) -> List:
+        """Retrieve successor tasks for the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/successors'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Task.from_data(self._connection_object, t) for t in response]
+
+    def get_service_instances(self) -> List:
+        """Retrieve service instances associated with the current task instance."""
+        from .service_instances import ServiceInstance
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/service_instances'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ServiceInstance.from_data(self._connection_object, si) for si in response]
+
+    def get_automation_rules(self) -> List[dict]:
+        """Retrieve automation rules associated with the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/automation_rules'
+        return self._connection_object.api_call(uri, 'GET')

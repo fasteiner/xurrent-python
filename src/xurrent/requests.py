@@ -424,3 +424,35 @@ class Request(JsonSerializableDict):
         except Exception as e:
             return False
 
+    def get_attachments(self) -> List[dict]:
+        """Retrieve all attachments associated with this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/attachments'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_knowledge_articles(self) -> List:
+        """Retrieve all knowledge articles associated with this request instance."""
+        from .knowledge_articles import KnowledgeArticle
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/knowledge_articles'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [KnowledgeArticle.from_data(self._connection_object, item) for item in response]
+
+    def get_automation_rules(self) -> List[dict]:
+        """Retrieve all automation rules associated with this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/automation_rules'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_satisfaction_feedback(self) -> List[dict]:
+        """Retrieve satisfaction feedback for this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/satisfaction_feedback'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_tags(self) -> List[dict]:
+        """Retrieve all tags associated with this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/tags'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_watches(self) -> List[dict]:
+        """Retrieve all watches on this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/watches'
+        return self._connection_object.api_call(uri, 'GET')
+
