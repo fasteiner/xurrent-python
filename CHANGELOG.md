@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Problems: added `Problem` class with `ProblemPredefinedFilter`, `ProblemStatus`, and `ProblemImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, workflows, notes).
+- ServiceInstances: added `ServiceInstance` class with `ServiceInstancePredefinedFilter` and `ServiceInstanceStatus` enums; supports CRUD and sub-resources (cis, slas, users).
+- Releases: added `Release` class with `ReleasePredefinedFilter`, `ReleaseStatus`, and `ReleaseImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (workflows, notes).
+- Projects: added `Project` class with `ProjectPredefinedFilter`, `ProjectStatus`, and `ProjectCategory` enums; supports CRUD, archive/trash/restore, and sub-resources (tasks, phases, workflows, risks, notes).
+- Contracts: added `Contract` class with `ContractPredefinedFilter` and `ContractStatus` enums; supports CRUD and CI listing.
+- KnowledgeArticles: added `KnowledgeArticle` class with `KnowledgeArticlePredefinedFilter` and `KnowledgeArticleStatus` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, service_instances, translations).
+- Risks: added `Risk` class with `RiskPredefinedFilter`, `RiskStatus`, and `RiskSeverity` enums; supports CRUD, archive/trash/restore, and sub-resources (organizations, projects, services).
+- ServiceOfferings: added `ServiceOffering` class with `ServiceOfferingPredefinedFilter` and `ServiceOfferingStatus` enums; supports CRUD.
+- SkillPools: added `SkillPool` class with `SkillPoolPredefinedFilter` enum; supports CRUD, enable/disable, and sub-resources (members, effort_classes).
+- ClosureCodes: added `ClosureCode` class; supports CRUD.
 - Docs: added `CLAUDE.md` with setup instructions, test commands, architecture overview, and changelog requirements for Claude Code.
 - Products: added `Product` class with `ProductPredefinedFilter` and `ProductDepreciationMethod` enums; supports CRUD, enable/disable, and CI listing.
 - ProductCategories: added `ProductCategory` class with `ProductCategoryRuleSet` enum; supports CRUD and enable/disable.
