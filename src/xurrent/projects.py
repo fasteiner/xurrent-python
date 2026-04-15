@@ -162,3 +162,5 @@ class Project(JsonSerializableDict):
             return self._connection_object.api_call(uri, 'POST', note)
         elif isinstance(note, str):
             return self._connection_object.api_call(uri, 'POST', {'text': note})
+        else:
+            raise TypeError(f"Expected 'note' to be a str or dict, got {type(note).__name__}")
