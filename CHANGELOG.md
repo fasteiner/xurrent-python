@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Teams: added `get_service_instances` instance method.
 - Holidays: added `get_calendars` instance method.
 - ClosureCodes: added `ClosureCode` class; supports CRUD.
+- Core: added `search(query, types)` for cross-resource full-text search via `GET /search`.
+- Core: added `bulk_import(data, import_type, import_format)` for CSV/TSV bulk imports via `POST /import`.
+- Core: added `list_archive(queryfilter)` to list all archived items via `GET /archive`.
+- Core: added `list_trash(queryfilter)` to list all trashed items via `GET /trash`.
+- Core: added `list_audit_lines(queryfilter)` to query the global audit log via `GET /audit_lines`.
 - Docs: added `CLAUDE.md` with setup instructions, test commands, architecture overview, and changelog requirements for Claude Code.
 - Products: added `Product` class with `ProductPredefinedFilter` and `ProductDepreciationMethod` enums; supports CRUD, enable/disable, and CI listing.
 - ProductCategories: added `ProductCategory` class with `ProductCategoryRuleSet` enum; supports CRUD and enable/disable.
