@@ -64,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Core/People/Requests/Tasks/Workflows: restored lazy-loaded cross-module references in type annotations and fixed `Task` sub-resource helper name resolution so flake8 no longer reports `F821` undefined names.
+- Core: URL-encode `search()` query parameters so spaces and reserved characters do not produce ambiguous request URLs.
+- CI: strip an optional leading `v` from release tags before computing the forced patch bump in `release.yml`.
 
 ## [0.11.0] - 2026-04-13
 

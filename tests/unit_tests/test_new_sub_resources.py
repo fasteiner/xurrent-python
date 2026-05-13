@@ -2,6 +2,7 @@ import pytest
 import os
 import sys
 from unittest.mock import MagicMock, patch
+from urllib.parse import urlencode
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 
@@ -523,10 +524,10 @@ def test_holiday_get_calendars(mock_connection, holiday_instance):
 def test_search(mock_connection):
     mock_connection.api_call.return_value = [{"id": 1, "type": "request"}]
     mock_connection.search = lambda query, types=None: mock_connection.api_call(
-        f"/search?q={query}", "GET"
+        f"/search?{urlencode({'q': query})}", "GET"
     )
     result = mock_connection.search("password reset")
-    mock_connection.api_call.assert_called_once_with("/search?q=password reset", "GET")
+    mock_connection.api_call.assert_called_once_with("/search?q=password+reset", "GET")
     assert result == [{"id": 1, "type": "request"}]
 
 
@@ -536,7 +537,7 @@ def test_search_core():
     )
     helper.api_call = MagicMock(return_value=[{"id": 1}])
     result = helper.search("test query")
-    helper.api_call.assert_called_once_with("/search?q=test query", "GET")
+    helper.api_call.assert_called_once_with("/search?q=test+query", "GET")
     assert result == [{"id": 1}]
 
 
@@ -546,7 +547,16 @@ def test_search_with_types_core():
     )
     helper.api_call = MagicMock(return_value=[])
     helper.search("test query", types=["request", "person"])
-    helper.api_call.assert_called_once_with("/search?q=test query&types=request,person", "GET")
+    helper.api_call.assert_called_once_with("/search?q=test+query&types=request%2Cperson", "GET")
+
+
+def test_search_encodes_reserved_characters_core():
+    helper = XurrentApiHelper(
+        "https://api.example.com", api_key="key", api_account="acct", resolve_user=False
+    )
+    helper.api_call = MagicMock(return_value=[])
+    helper.search("a & b? c", types=["request"])
+    helper.api_call.assert_called_once_with("/search?q=a+%26+b%3F+c&types=request", "GET")
 
 
 def test_bulk_import_core():

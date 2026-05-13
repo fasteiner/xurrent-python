@@ -7,6 +7,7 @@ import logging
 import json
 import re
 import base64
+from urllib.parse import urlencode
 from logging import Logger
 from typing import Optional, List, TYPE_CHECKING
 
@@ -399,9 +400,10 @@ class XurrentApiHelper:
         :param types: Optional list of resource types to search (e.g. ['request', 'person'])
         :return: List of search results
         """
-        uri = f'/search?q={query}'
+        params = {'q': query}
         if types:
-            uri += '&types=' + ','.join(types)
+            params['types'] = ','.join(types)
+        uri = f"/search?{urlencode(params)}"
         return self.api_call(uri, 'GET')
 
     def bulk_import(self, data: str, import_type: str, import_format: str = 'csv') -> dict:

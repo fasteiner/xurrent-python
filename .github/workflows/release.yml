@@ -92,10 +92,11 @@ jobs:
           else
             PREV_TAG=$(git describe --tags --abbrev=0)
             echo "Previous tag: $PREV_TAG"
+            CLEAN_TAG=${PREV_TAG#v}
 
-            MAJOR=$(echo $PREV_TAG | cut -d. -f1)
-            MINOR=$(echo $PREV_TAG | cut -d. -f2)
-            PATCH=$(echo $PREV_TAG | cut -d. -f3)
+            MAJOR=$(echo $CLEAN_TAG | cut -d. -f1)
+            MINOR=$(echo $CLEAN_TAG | cut -d. -f2)
+            PATCH=$(echo $CLEAN_TAG | cut -d. -f3)
             NEW_PATCH=$((PATCH + 1))
 
             EFFECTIVE_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
