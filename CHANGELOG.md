@@ -61,6 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI: updated GitHub Actions in `release.yml` — `GitTools/actions` `v0` → `v3` (latest version compatible with GitVersion 5.x; v4+ requires GitVersion ≥6.1), `stefanzweifel/git-auto-commit-action` `v5` → `v7`, `softprops/action-gh-release` `v1` → `v2`.
 - CI: updated `python-package.yml` — `actions/setup-python` `v3` → `v5`; added `pip install .` so the package itself is installed before tests run; added a `flake8` lint step (syntax errors and undefined names only); split test run into separate `Unit tests` and `Integration tests` steps so unit tests always run regardless of credentials; added Python 3.14 to the test matrix.
 
+### Fixed
+
+- Core/People/Requests/Tasks/Workflows: restored lazy-loaded cross-module references in type annotations and fixed `Task` sub-resource helper name resolution so flake8 no longer reports `F821` undefined names.
+
 ## [0.11.0] - 2026-04-13
 
 ### Added

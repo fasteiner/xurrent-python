@@ -1,8 +1,11 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, TYPE_CHECKING
 from .core import XurrentApiHelper, JsonSerializableDict
 from enum import Enum
+
+if TYPE_CHECKING:
+    from .tasks import Task
 
 class WorkflowCompletionReason(str, Enum):
     withdrawn = "withdrawn"  # Withdrawn - Withdrawn by Requester
@@ -95,7 +98,7 @@ class Workflow(JsonSerializableDict):
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
-    def get_workflows(cls, connection_object: XurrentApiHelper, predefinedFilter: WorkflowPredefinedFilter = None, queryfilter: dict = None) -> List[Workflow]:
+    def get_workflows(cls, connection_object: XurrentApiHelper, predefinedFilter: WorkflowPredefinedFilter = None, queryfilter: dict = None) -> List["Workflow"]:
         """
         Retrieve all workflows.
         """
@@ -108,14 +111,14 @@ class Workflow(JsonSerializableDict):
         return [cls.from_data(connection_object, workflow) for workflow in response]
 
     @classmethod
-    def get_workflow_tasks_by_workflow_id(cls, connection_object: XurrentApiHelper, id: int, queryfilter: dict = None) -> List[Task]:
+    def get_workflow_tasks_by_workflow_id(cls, connection_object: XurrentApiHelper, id: int, queryfilter: dict = None) -> List["Task"]:
         """
         Retrieve all tasks associated with a workflow by its ID.
         """
         workflow = Workflow(connection_object, id)
         return workflow.get_tasks(queryfilter=queryfilter)
 
-    def get_tasks(self, queryfilter: dict = None) -> List[Task]:
+    def get_tasks(self, queryfilter: dict = None) -> List["Task"]:
         """
         Retrieve all tasks associated with the current workflow instance.
         """
@@ -127,14 +130,14 @@ class Workflow(JsonSerializableDict):
         return [Task.from_data(self._connection_object, task) for task in response]
 
     @classmethod
-    def get_workflow_task_by_template_id(cls, connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> List[Task]:
+    def get_workflow_task_by_template_id(cls, connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> List["Task"]:
         """
         Retrieve a specific task associated with a workflow by template ID.
         """
         workflow = Workflow(connection_object, workflowID)
         return workflow.get_task_by_template_id(templateID)
     
-    def get_task_by_template_id(self, templateID: int) -> List[Task]:
+    def get_task_by_template_id(self, templateID: int) -> List["Task"]:
         """
         Retrieve a specific task associated with the current workflow by template ID.
         """
@@ -264,4 +267,3 @@ class Workflow(JsonSerializableDict):
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/problems'
         response = self._connection_object.api_call(uri, 'GET')
         return [Problem.from_data(self._connection_object, p) for p in response]
-

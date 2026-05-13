@@ -1,7 +1,10 @@
+from __future__ import annotations
 from .core import XurrentApiHelper, JsonSerializableDict
-from .workflows import Workflow
 from enum import Enum
-from typing import Optional, List, Dict, Type, TypeVar
+from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .workflows import Workflow
 
 
 T = TypeVar('T', bound='Task')
@@ -73,22 +76,25 @@ class Task(JsonSerializableDict):
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        return connection_object.api_call(uri, 'GET')
+            uri += '?' + connection_object.create_filter_string(queryfilter)
+        response = connection_object.api_call(uri, 'GET')
+        return [cls.from_data(connection_object, task) for task in response]
 
     @staticmethod
-    def get_workflow_of_task(connection_object: XurrentApiHelper, id, expand: bool = False) -> Workflow:
+    def get_workflow_of_task(connection_object: XurrentApiHelper, id, expand: bool = False) -> "Workflow":
+        from .workflows import Workflow
         task = Task.get_by_id(connection_object, id)
         if expand:
             return Workflow.get_by_id(connection_object, task.workflow.id)
         return Workflow.from_data(connection_object, task.workflow)
 
-    def get_workflow(self, expand: bool = False) -> Workflow:
-        if task.workflow and not expand:
+    def get_workflow(self, expand: bool = False) -> "Workflow":
+        from .workflows import Workflow
+        if self.workflow and not expand:
             return Workflow.from_data(self._connection_object, self.workflow)
-        elif task.workflow and expand:
+        elif self.workflow and expand:
             return Workflow.get_by_id(self._connection_object, self.workflow.id)
-        elif not task.workflow:
+        elif not self.workflow:
             return Task.get_workflow_of_task(self._connection_object, self.id, expand)
 
 

@@ -1,8 +1,11 @@
 from __future__ import annotations  # Needed for forward references
 from .core import XurrentApiHelper, JsonSerializableDict
-from typing import Optional, List, Dict, Type, TypeVar
+from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
 
 from enum import Enum
+
+if TYPE_CHECKING:
+    from .teams import Team
 
 class PeoplePredefinedFilter(str, Enum):
     disabled = "disabled"  # List all disabled people
@@ -80,7 +83,7 @@ class Person(JsonSerializableDict):
         response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, person) for person in response]
     
-    def get_teams(self) -> List[Team]:
+    def get_teams(self) -> List["Team"]:
         """
         Retrieve the teams of the person.
         """
@@ -198,4 +201,3 @@ class Person(JsonSerializableDict):
         response = self._connection_object.api_call(uri, 'GET')
         return [SkillPool.from_data(self._connection_object, sp) for sp in response]
 
-    

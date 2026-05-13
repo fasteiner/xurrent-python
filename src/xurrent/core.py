@@ -8,7 +8,11 @@ import json
 import re
 import base64
 from logging import Logger
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .people import Person
+    from .teams import Team
 
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
@@ -45,8 +49,8 @@ class JsonSerializableDict(dict):
 
 
 class XurrentApiHelper:
-    api_user: Person # Forward declaration with a string
-    api_user_teams: List[Team] # Forward declaration with a string
+    api_user: "Person"
+    api_user_teams: List["Team"]
 
     def __init__(
         self,
