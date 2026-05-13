@@ -48,6 +48,8 @@ class XurrentApiHelper:
     api_user: Person # Forward declaration with a string
     api_user_teams: List[Team] # Forward declaration with a string
 
+    DEFAULT_TOKEN_URL = "https://oauth.xurrent.com/token"
+
     def __init__(
         self,
         base_url,
@@ -56,7 +58,8 @@ class XurrentApiHelper:
         resolve_user=True,
         logger: Logger=None,
         client_id: Optional[str]=None,
-        client_secret: Optional[str]=None
+        client_secret: Optional[str]=None,
+        token_url: Optional[str]=None
     ):
         """
         Initialize the Xurrent API helper.
@@ -66,6 +69,7 @@ class XurrentApiHelper:
         :param api_account: Account name to use
         :param client_id: OAuth client ID to use when fetching an access token
         :param client_secret: OAuth client secret to use when fetching an access token
+        :param token_url: OAuth token endpoint URL (default: https://oauth.xurrent.com/token)
         :param resolve_user: Resolve the API user and their teams (default: True)
         :param logger: Logger to use (optional), otherwise a new logger is created
         """
@@ -73,6 +77,7 @@ class XurrentApiHelper:
         self.api_account = api_account
         self._client_id = client_id
         self._client_secret = client_secret
+        self._token_url = token_url or self.DEFAULT_TOKEN_URL
         self._token_expires_at: Optional[float] = None
 
         if bool(api_key) == bool(client_id and client_secret):
@@ -117,24 +122,6 @@ class XurrentApiHelper:
 
     def _obtain_access_token(self):
         """Fetch a new OAuth access token using the client credentials grant."""
-        # Dynamically determine the domain from the base_url and preserve regional subdomains
-        import urllib.parse
-        parsed = urllib.parse.urlparse(self.base_url)
-        # Extract the netloc (e.g. api.xurrent.com, api.au.xurrent.com) and replace 'api' with 'oauth'
-        netloc_parts = parsed.netloc.split('.')
-        if len(netloc_parts) < 2:
-            raise ValueError('Invalid base_url for extracting domain')
-            
-        # Replace the first part (assumed to be 'api') with 'oauth'
-        if netloc_parts[0] == 'api':
-            netloc_parts[0] = 'oauth'
-        else:
-            self.logger.warning(f"Expected first domain part to be 'api', got '{netloc_parts[0]}'. Proceeding anyway.")
-            netloc_parts[0] = 'oauth'
-            
-        # Reconstruct the domain preserving all parts including regional subdomains
-        oauth_domain = '.'.join(netloc_parts)
-        token_url = f'https://{oauth_domain}/token'
         payload = {
             'client_id': self._client_id,
             'client_secret': self._client_secret,
@@ -142,7 +129,7 @@ class XurrentApiHelper:
         }
 
         try:
-            response = requests.post(token_url, data=payload)
+            response = requests.post(self._token_url, data=payload)
             response.raise_for_status()
         except requests.exceptions.RequestException as exc:
             self.logger.error(f'Failed to obtain OAuth access token: {exc}')
