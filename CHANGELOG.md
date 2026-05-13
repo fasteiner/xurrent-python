@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Problems: added `Problem` class with `ProblemPredefinedFilter`, `ProblemStatus`, and `ProblemImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, workflows, notes).
+- ServiceInstances: added `ServiceInstance` class with `ServiceInstancePredefinedFilter` and `ServiceInstanceStatus` enums; supports CRUD and sub-resources (cis, slas, users).
+- Releases: added `Release` class with `ReleasePredefinedFilter`, `ReleaseStatus`, and `ReleaseImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (workflows, notes).
+- Projects: added `Project` class with `ProjectPredefinedFilter`, `ProjectStatus`, and `ProjectCategory` enums; supports CRUD, archive/trash/restore, and sub-resources (tasks, phases, workflows, risks, notes).
+- Contracts: added `Contract` class with `ContractPredefinedFilter` and `ContractStatus` enums; supports CRUD and CI listing.
+- KnowledgeArticles: added `KnowledgeArticle` class with `KnowledgeArticlePredefinedFilter` and `KnowledgeArticleStatus` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, service_instances, translations).
+- Risks: added `Risk` class with `RiskPredefinedFilter`, `RiskStatus`, and `RiskSeverity` enums; supports CRUD, archive/trash/restore, and sub-resources (organizations, projects, services).
+- ServiceOfferings: added `ServiceOffering` class with `ServiceOfferingPredefinedFilter` and `ServiceOfferingStatus` enums; supports CRUD.
+- SkillPools: added `SkillPool` class with `SkillPoolPredefinedFilter` enum; supports CRUD, enable/disable, and sub-resources (members, effort_classes).
+- Requests: added `get_attachments`, `get_knowledge_articles`, `get_automation_rules`, `get_satisfaction_feedback`, `get_tags`, and `get_watches` instance methods.
+- Tasks: added `get_notes`, `add_note`, `get_approvals`, `get_cis`, `get_predecessors`, `get_successors`, `get_service_instances`, and `get_automation_rules` instance methods.
+- Workflows: added `get_notes`, `add_note`, `get_automation_rules`, `get_phases`, `get_requests`, and `get_problems` instance methods.
+- People: added `get_cis`, `get_addresses`, `get_contacts`, `get_permissions`, `get_ci_coverages`, `get_sla_coverages`, `get_service_coverages`, `get_out_of_office_periods`, and `get_skill_pools` instance methods.
+- Organizations: added `get_addresses`, `get_contacts`, `get_contracts`, `get_risks`, `get_slas`, and `get_time_allocations` instance methods.
+- Services: added `get_workflows`, `get_request_templates`, `get_risks`, `get_service_instances`, `get_slas`, and `get_service_offerings` instance methods.
+- Calendars: added `get_duration`, `get_hours`, and `get_holidays` instance methods.
+- Teams: added `get_service_instances` instance method.
+- Holidays: added `get_calendars` instance method.
+- ClosureCodes: added `ClosureCode` class; supports CRUD.
+- Core: added `search(query, types)` for cross-resource full-text search via `GET /search`.
+- Core: added `bulk_import(data, import_type, import_format)` for CSV/TSV bulk imports via `POST /import`.
+- Core: added `list_archive(queryfilter)` to list all archived items via `GET /archive`.
+- Core: added `list_trash(queryfilter)` to list all trashed items via `GET /trash`.
+- Core: added `list_audit_lines(queryfilter)` to query the global audit log via `GET /audit_lines`.
 - Docs: added `CLAUDE.md` with setup instructions, test commands, architecture overview, and changelog requirements for Claude Code.
 - Products: added `Product` class with `ProductPredefinedFilter` and `ProductDepreciationMethod` enums; supports CRUD, enable/disable, and CI listing.
 - ProductCategories: added `ProductCategory` class with `ProductCategoryRuleSet` enum; supports CRUD and enable/disable.

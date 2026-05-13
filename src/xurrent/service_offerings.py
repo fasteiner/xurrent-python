@@ -1,36 +1,56 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
 from .core import XurrentApiHelper, JsonSerializableDict
+from enum import Enum
 
-T = TypeVar('T', bound='Holiday')
+T = TypeVar('T', bound='ServiceOffering')
 
 
-class Holiday(JsonSerializableDict):
-    # https://developer.xurrent.com/v1/holidays/
-    __resourceUrl__ = 'holidays'
+class ServiceOfferingPredefinedFilter(str, Enum):
+    catalog = "catalog"
+    portfolio = "portfolio"
+
+    def __str__(self):
+        return self.value
+
+
+class ServiceOfferingStatus(str, Enum):
+    not_offered = "not_offered"
+    available = "available"
+    temporarily_unavailable = "temporarily_unavailable"
+
+    def __str__(self):
+        return self.value
+
+
+class ServiceOffering(JsonSerializableDict):
+    # https://developer.xurrent.com/v1/service_offerings/
+    __resourceUrl__ = 'service_offerings'
 
     def __init__(self,
                  connection_object: XurrentApiHelper,
                  id: int,
                  name: Optional[str] = None,
-                 start_at=None,
-                 end_at=None,
-                 picture_uri: Optional[str] = None,
+                 status: Optional[str] = None,
+                 service=None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object
         self.name = name
-        self.start_at = start_at
-        self.end_at = end_at
-        self.picture_uri = picture_uri
+        self.status = ServiceOfferingStatus(status) if isinstance(status, str) else status
+
+        from .services import Service
+        self.service = (service if isinstance(service, Service)
+                        else Service.from_data(connection_object, service) if service else None)
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __str__(self) -> str:
-        return f"Holiday(id={self.id}, name={self.name}, start_at={self.start_at}, end_at={self.end_at})"
+        return f"ServiceOffering(id={self.id}, name={self.name}, status={self.status})"
 
     def ref_str(self) -> str:
-        return f"Holiday(id={self.id}, name={self.name})"
+        return f"ServiceOffering(id={self.id}, name={self.name})"
 
     @classmethod
     def from_data(cls, connection_object: XurrentApiHelper, data) -> T:
@@ -46,9 +66,12 @@ class Holiday(JsonSerializableDict):
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
-    def get_holidays(cls, connection_object: XurrentApiHelper,
-                     queryfilter: dict = None) -> List[T]:
+    def get_service_offerings(cls, connection_object: XurrentApiHelper,
+                              predefinedFilter: ServiceOfferingPredefinedFilter = None,
+                              queryfilter: dict = None) -> List[T]:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
+        if predefinedFilter:
+            uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
         response = connection_object.api_call(uri, 'GET')
@@ -57,17 +80,10 @@ class Holiday(JsonSerializableDict):
     def update(self, data: dict) -> T:
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        return Holiday.from_data(self._connection_object, response)
+        return ServiceOffering.from_data(self._connection_object, response)
 
     @classmethod
     def create(cls, connection_object: XurrentApiHelper, data: dict) -> T:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
-
-    def get_calendars(self) -> List:
-        """Retrieve calendars that contain this holiday."""
-        from .calendars import Calendar
-        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/calendars'
-        response = self._connection_object.api_call(uri, 'GET')
-        return [Calendar.from_data(self._connection_object, c) for c in response]

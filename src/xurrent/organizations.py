@@ -137,3 +137,39 @@ class Organization(JsonSerializableDict):
             uri += '?' + self._connection_object.create_filter_string(queryfilter)
         response = self._connection_object.api_call(uri, 'GET')
         return [Organization.from_data(self._connection_object, item) for item in response]
+
+    def get_addresses(self) -> List[dict]:
+        """Retrieve addresses for this organization instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/addresses'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_contacts(self) -> List[dict]:
+        """Retrieve contacts for this organization instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/contacts'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_contracts(self) -> List:
+        """Retrieve contracts for this organization instance."""
+        from .contracts import Contract
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/contracts'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Contract.from_data(self._connection_object, c) for c in response]
+
+    def get_risks(self) -> List:
+        """Retrieve risks for this organization instance."""
+        from .risks import Risk
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/risks'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Risk.from_data(self._connection_object, r) for r in response]
+
+    def get_slas(self) -> List[dict]:
+        """Retrieve SLAs for this organization instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/slas'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_time_allocations(self) -> List:
+        """Retrieve time allocations for this organization instance."""
+        from .time_allocations import TimeAllocation
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/time_allocations'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [TimeAllocation.from_data(self._connection_object, ta) for ta in response]

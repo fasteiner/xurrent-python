@@ -224,3 +224,44 @@ class Workflow(JsonSerializableDict):
         response = self._connection_object.api_call(uri, 'POST')
         return Workflow.from_data(self._connection_object,response)
 
+    def get_notes(self, queryfilter: dict = None) -> List[dict]:
+        """Retrieve all notes associated with the current workflow instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        if queryfilter:
+            uri += '?' + self._connection_object.create_filter_string(queryfilter)
+        return self._connection_object.api_call(uri, 'GET')
+
+    def add_note(self, note) -> dict:
+        """Add a note to the current workflow instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        if isinstance(note, dict):
+            return self._connection_object.api_call(uri, 'POST', note)
+        elif isinstance(note, str):
+            return self._connection_object.api_call(uri, 'POST', {'text': note})
+        else:
+            raise TypeError(f"Expected 'note' to be a str or dict, got {type(note).__name__}")
+
+    def get_automation_rules(self) -> List[dict]:
+        """Retrieve automation rules associated with the current workflow instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/automation_rules'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_phases(self) -> List[dict]:
+        """Retrieve phases of the current workflow instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/phases'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_requests(self) -> List:
+        """Retrieve requests associated with the current workflow instance."""
+        from .requests import Request
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/requests'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Request.from_data(self._connection_object, r) for r in response]
+
+    def get_problems(self) -> List:
+        """Retrieve problems associated with the current workflow instance."""
+        from .problems import Problem
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/problems'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Problem.from_data(self._connection_object, p) for p in response]
+
