@@ -14,3 +14,6 @@
 eval $(poetry env activate)
 ```
 
+## ChangeLog
+
+When you make code changes, please document them in the ChangeLog. You can use the [Keep a Changelog assistant](https://chatgpt.com/g/g-684af39084148191b7c83c89daf1b477-keep-a-changelog-assistant) or Claude Code to help write the entry.

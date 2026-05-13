@@ -1,10 +1,14 @@
 from __future__ import annotations  # Needed for forward references
 from .core import XurrentApiHelper, JsonSerializableDict
-from .people import Person
-from .teams import Team
 from enum import Enum
 from datetime import datetime
-from typing import Optional, List, Dict, Type, TypeVar
+from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .configuration_items import ConfigurationItem
+    from .people import Person
+    from .teams import Team
+    from .workflows import Workflow
 
 class RequestCategory(str, Enum):
     incident = "incident"  # Incident - Request for Incident Resolution
@@ -77,13 +81,13 @@ class Request(JsonSerializableDict):
     #https://developer.xurrent.com/v1/requests/
     __resourceUrl__ = 'requests'
     __references__ = ['workflow', 'requested_by', 'requested_for', 'created_by', 'member', 'team']
-    workflow: Optional[Workflow]
-    requested_by: Optional[Person]
-    requested_for: Optional[Person]
-    created_by: Optional[Person]
+    workflow: Optional["Workflow"]
+    requested_by: Optional["Person"]
+    requested_for: Optional["Person"]
+    created_by: Optional["Person"]
     category: Optional[RequestCategory]
     status: Optional[RequestStatus]
-    team: Optional[Team]
+    team: Optional["Team"]
 
     def __init__(self,
                  connection_object: XurrentApiHelper,
@@ -97,15 +101,15 @@ class Request(JsonSerializableDict):
                  next_target_at: Optional[datetime] = None,
                  completed_at: Optional[datetime] = None,
                  team: Optional[Dict[str, str]] = None,
-                 member: Optional[Person] = None,
+                 member: Optional["Person"] = None,
                  grouped_into: Optional[int] = None,
                  service_instance: Optional[Dict[str, str]] = None,
                  created_at: Optional[datetime] = None,
                  updated_at: Optional[datetime] = None,
-                 workflow: Optional[Workflow] = None,
-                 requested_by: Optional[Person] = None,
-                 requested_for: Optional[Person] = None,
-                 created_by: Optional[Person] = None,
+                 workflow: Optional["Workflow"] = None,
+                 requested_by: Optional["Person"] = None,
+                 requested_for: Optional["Person"] = None,
+                 created_by: Optional["Person"] = None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object  # Private attribute for connection object
@@ -129,6 +133,7 @@ class Request(JsonSerializableDict):
         self.requested_by = requested_by if isinstance(requested_by, Person) else Person.from_data(connection_object, requested_by) if requested_by else None
         self.requested_for = requested_for if isinstance(requested_for, Person) else Person.from_data(connection_object, requested_for) if requested_for else None
         self.created_by = created_by if isinstance(created_by, Person) else Person.from_data(connection_object, created_by) if created_by else None
+        from .teams import Team
         self.team = team if isinstance(team, Team) else Team.from_data(connection_object, team) if team else None
 
 
@@ -336,7 +341,7 @@ class Request(JsonSerializableDict):
     # Developer Documentation: https://developer.xurrent.com/v1/requests/cis
 
     @classmethod
-    def get_cis_by_request_id(cls, connection_object: XurrentApiHelper, request_id: int) -> List[ConfigurationItem]:
+    def get_cis_by_request_id(cls, connection_object: XurrentApiHelper, request_id: int) -> List["ConfigurationItem"]:
         """
         Retrieve configuration items associated with a request.
 
@@ -383,7 +388,7 @@ class Request(JsonSerializableDict):
         except Exception as e:
             return False
     
-    def get_cis(self) -> List[ConfigurationItem]:
+    def get_cis(self) -> List["ConfigurationItem"]:
         """
         Retrieve configuration items associated with this request instance.
 
@@ -424,3 +429,34 @@ class Request(JsonSerializableDict):
         except Exception as e:
             return False
 
+    def get_attachments(self) -> List[dict]:
+        """Retrieve all attachments associated with this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/attachments'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_knowledge_articles(self) -> List:
+        """Retrieve all knowledge articles associated with this request instance."""
+        from .knowledge_articles import KnowledgeArticle
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/knowledge_articles'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [KnowledgeArticle.from_data(self._connection_object, item) for item in response]
+
+    def get_automation_rules(self) -> List[dict]:
+        """Retrieve all automation rules associated with this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/automation_rules'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_satisfaction_feedback(self) -> List[dict]:
+        """Retrieve satisfaction feedback for this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/satisfaction_feedback'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_tags(self) -> List[dict]:
+        """Retrieve all tags associated with this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/tags'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_watches(self) -> List[dict]:
+        """Retrieve all watches on this request instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/watches'
+        return self._connection_object.api_call(uri, 'GET')

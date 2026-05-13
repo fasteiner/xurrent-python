@@ -1,6 +1,6 @@
 [project]
 name = "xurrent"
-version = "0.11.0"
+version = "0.13.0-preview.23"
 authors = [
   { name="Fabian Steiner", email="fabian@stei-ner.net" },
 ]
@@ -18,9 +18,9 @@ Homepage = "https://github.com/fasteiner/xurrent-python"
 Issues = "https://github.com/fasteiner/xurrent-python/issues"
 [tool.poetry]
 name = "xurrent"
-version = "0.11.0"
+version = "0.13.0-preview.23"
 description = "A python module to interact with the Xurrent API."
-authors = ["Ing. Fabian Franz Steiner BSc. <fabian.steiner@tttech.com>"]
+authors = ["Ing. Fabian Franz Steiner BSc. <f.steiner@techwork.at>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -38,3 +38,9 @@ shell = "^1.0.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "mock>=5.2.0",
+    "pytest>=8.4.2",
+]

@@ -6,6 +6,9 @@ on:
       - main
       - Dev
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write
 
@@ -18,18 +21,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Required for GitVersion to work correctly
 
       - name: Install GitVersion
-        uses: GitTools/actions/gitversion/setup@v0
+        uses: GitTools/actions/gitversion/setup@v3
         with:
           versionSpec: '5.x'
 
       - name: Determine Version
         id: gitversion
-        uses: GitTools/actions/gitversion/execute@v0
+        uses: GitTools/actions/gitversion/execute@v3
 
       - name: Extract Release Notes from Changelog
         id: extract-changelog
@@ -47,10 +50,10 @@ jobs:
 
           if echo "$CHANGED_FILES" | grep -E '\.py$'; then
             echo "python_changed=true" >> $GITHUB_ENV
-            echo "::set-output name=python_changed::true"
+            echo "python_changed=true" >> $GITHUB_OUTPUT
           else
             echo "python_changed=false" >> $GITHUB_ENV
-            echo "::set-output name=python_changed::false"
+            echo "python_changed=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Set Version Bump Type from GitVersion
@@ -89,10 +92,11 @@ jobs:
           else
             PREV_TAG=$(git describe --tags --abbrev=0)
             echo "Previous tag: $PREV_TAG"
+            CLEAN_TAG=${PREV_TAG#v}
 
-            MAJOR=$(echo $PREV_TAG | cut -d. -f1)
-            MINOR=$(echo $PREV_TAG | cut -d. -f2)
-            PATCH=$(echo $PREV_TAG | cut -d. -f3)
+            MAJOR=$(echo $CLEAN_TAG | cut -d. -f1)
+            MINOR=$(echo $CLEAN_TAG | cut -d. -f2)
+            PATCH=$(echo $CLEAN_TAG | cut -d. -f3)
             NEW_PATCH=$((PATCH + 1))
 
             EFFECTIVE_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
@@ -100,7 +104,7 @@ jobs:
           fi
 
           echo "effective_version=$EFFECTIVE_VERSION" >> $GITHUB_ENV
-          echo "::set-output name=effective_version::$EFFECTIVE_VERSION"
+          echo "effective_version=$EFFECTIVE_VERSION" >> $GITHUB_OUTPUT
 
       - name: Update CHANGELOG.md
         if: github.ref == 'refs/heads/main'
@@ -111,7 +115,7 @@ jobs:
 
       - name: Commit Updated CHANGELOG.md
         if: github.ref == 'refs/heads/main'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Update CHANGELOG for release ${{ steps.effective-version.outputs.effective_version }}"
           file_pattern: "CHANGELOG.md"
@@ -137,7 +141,7 @@ jobs:
           EOF
 
       - name: Commit Updated pyproject.toml
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Update pyproject.toml for release ${{ steps.effective-version.outputs.effective_version }}"
           file_pattern: "pyproject.toml"
@@ -155,7 +159,7 @@ jobs:
 
       - name: Create GitHub Release
         if: env.python_changed == 'true'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.effective-version.outputs.effective_version }}
           name: Release v${{ steps.effective-version.outputs.effective_version }}

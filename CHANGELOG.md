@@ -5,9 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Problems: added `Problem` class with `ProblemPredefinedFilter`, `ProblemStatus`, and `ProblemImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, workflows, notes).
+- ServiceInstances: added `ServiceInstance` class with `ServiceInstancePredefinedFilter` and `ServiceInstanceStatus` enums; supports CRUD and sub-resources (cis, slas, users).
+- Releases: added `Release` class with `ReleasePredefinedFilter`, `ReleaseStatus`, and `ReleaseImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (workflows, notes).
+- Projects: added `Project` class with `ProjectPredefinedFilter`, `ProjectStatus`, and `ProjectCategory` enums; supports CRUD, archive/trash/restore, and sub-resources (tasks, phases, workflows, risks, notes).
+- Contracts: added `Contract` class with `ContractPredefinedFilter` and `ContractStatus` enums; supports CRUD and CI listing.
+- KnowledgeArticles: added `KnowledgeArticle` class with `KnowledgeArticlePredefinedFilter` and `KnowledgeArticleStatus` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, service_instances, translations).
+- Risks: added `Risk` class with `RiskPredefinedFilter`, `RiskStatus`, and `RiskSeverity` enums; supports CRUD, archive/trash/restore, and sub-resources (organizations, projects, services).
+- ServiceOfferings: added `ServiceOffering` class with `ServiceOfferingPredefinedFilter` and `ServiceOfferingStatus` enums; supports CRUD.
+- SkillPools: added `SkillPool` class with `SkillPoolPredefinedFilter` enum; supports CRUD, enable/disable, and sub-resources (members, effort_classes).
+- Requests: added `get_attachments`, `get_knowledge_articles`, `get_automation_rules`, `get_satisfaction_feedback`, `get_tags`, and `get_watches` instance methods.
+- Tasks: added `get_notes`, `add_note`, `get_approvals`, `get_cis`, `get_predecessors`, `get_successors`, `get_service_instances`, and `get_automation_rules` instance methods.
+- Workflows: added `get_notes`, `add_note`, `get_automation_rules`, `get_phases`, `get_requests`, and `get_problems` instance methods.
+- People: added `get_cis`, `get_addresses`, `get_contacts`, `get_permissions`, `get_ci_coverages`, `get_sla_coverages`, `get_service_coverages`, `get_out_of_office_periods`, and `get_skill_pools` instance methods.
+- Organizations: added `get_addresses`, `get_contacts`, `get_contracts`, `get_risks`, `get_slas`, and `get_time_allocations` instance methods.
+- Services: added `get_workflows`, `get_request_templates`, `get_risks`, `get_service_instances`, `get_slas`, and `get_service_offerings` instance methods.
+- Calendars: added `get_duration`, `get_hours`, and `get_holidays` instance methods.
+- Teams: added `get_service_instances` instance method.
+- Holidays: added `get_calendars` instance method.
+- ClosureCodes: added `ClosureCode` class; supports CRUD.
+- Core: added `search(query, types)` for cross-resource full-text search via `GET /search`.
+- Core: added `bulk_import(data, import_type, import_format)` for CSV/TSV bulk imports via `POST /import`.
+- Core: added `list_archive(queryfilter)` to list all archived items via `GET /archive`.
+- Core: added `list_trash(queryfilter)` to list all trashed items via `GET /trash`.
+- Core: added `list_audit_lines(queryfilter)` to query the global audit log via `GET /audit_lines`.
+- Docs: added `CLAUDE.md` with setup instructions, test commands, architecture overview, and changelog requirements for Claude Code.
+- Products: added `Product` class with `ProductPredefinedFilter` and `ProductDepreciationMethod` enums; supports CRUD, enable/disable, and CI listing.
+- ProductCategories: added `ProductCategory` class with `ProductCategoryRuleSet` enum; supports CRUD and enable/disable.
+- Organizations: added `Organization` class with `OrganizationPredefinedFilter` enum; supports CRUD, enable/disable, archive/trash/restore, people and child org listing.
+- Sites: added `Site` class with `SitePredefinedFilter` enum; supports CRUD, enable/disable, archive/trash/restore.
+- OutOfOfficePeriods: added `OutOfOfficePeriod` class with `OutOfOfficePeriodPredefinedFilter` enum; supports CRUD and DELETE.
+- Holidays: added `Holiday` class; supports CRUD.
+- CustomCollections: added `CustomCollection` class with `CustomCollectionPredefinedFilter` enum; supports CRUD, enable/disable, and element listing.
+- CustomCollectionElements: added `CustomCollectionElement` class with `CustomCollectionElementPredefinedFilter` enum; supports CRUD and enable/disable.
+- ShopArticleCategories: added `ShopArticleCategory` class with `ShopArticleCategoryPredefinedFilter` enum; supports CRUD.
+- ShopArticles: added `ShopArticle` class with `ShopArticlePredefinedFilter` and `ShopArticleRecurringPeriod` enums; supports CRUD and enable/disable.
+- ShopOrderLines: added `ShopOrderLine` class with `ShopOrderLinePredefinedFilter`, `ShopOrderLineStatus`, and `ShopOrderLineRecurringPeriod` enums; supports CRUD.
+- Services: added `Service` class with `ServicePredefinedFilter` enum; supports CRUD and enable/disable.
+- Calendars: added `Calendar` class with `CalendarPredefinedFilter` enum; supports CRUD and enable/disable.
+- TimeAllocations: added `TimeAllocation` class with `TimeAllocationPredefinedFilter` and category enums; supports CRUD and enable/disable.
+- EffortClasses: added `EffortClass` class with `EffortClassPredefinedFilter` enum; supports CRUD and enable/disable.
+- RequestTemplates: added `RequestTemplate` class with `RequestTemplatePredefinedFilter`, `RequestTemplateCategory`, `RequestTemplateStatus`, and `RequestTemplateImpact` enums; supports CRUD and enable/disable.
+- UiExtensions: added `UiExtension` class with `UiExtensionCategory` enum; supports CRUD and enable/disable.
+- WorkflowTemplates: added `WorkflowTemplate` class with `WorkflowTemplatePredefinedFilter` and `WorkflowTemplateCategory` enums; supports CRUD and enable/disable.
+
+### Changed
+
+- People: `Person` now deserializes `site` (→ `Site`) and `organization` (→ `Organization`) references; also fixed a `People.from_data` typo in `update()`.
+- ConfigurationItems: `ConfigurationItem` now deserializes the `product` reference (→ `Product`).
+- Products: `Product` now deserializes the `category` reference (→ `ProductCategory`).
+- CI: updated GitHub Actions in `release.yml` — `GitTools/actions` `v0` → `v3` (latest version compatible with GitVersion 5.x; v4+ requires GitVersion ≥6.1), `stefanzweifel/git-auto-commit-action` `v5` → `v7`, `softprops/action-gh-release` `v1` → `v2`.
+- CI: updated `python-package.yml` — `actions/setup-python` `v3` → `v5`; added `pip install .` so the package itself is installed before tests run; added a `flake8` lint step (syntax errors and undefined names only); split test run into separate `Unit tests` and `Integration tests` steps so unit tests always run regardless of credentials; added Python 3.14 to the test matrix.
+
+### Fixed
+
+- Core/People/Requests/Tasks/Workflows: restored lazy-loaded cross-module references in type annotations and fixed `Task` sub-resource helper name resolution so flake8 no longer reports `F821` undefined names.
+- Core: URL-encode `search()` query parameters so spaces and reserved characters do not produce ambiguous request URLs.
+- CI: strip an optional leading `v` from release tags before computing the forced patch bump in `release.yml`.
+
 ## [0.11.0] - 2026-04-13
 
 ### Added
+
 
 - Core: support OAuth client credentials authentication via `client_id` and `client_secret` in `XurrentApiHelper` while maintaining API key compatibility.
 - Core: The OAuth token endpoint now dynamically determines the domain from `base_url`, preserving any regional subdomains to ensure consistency between API and OAuth endpoints.

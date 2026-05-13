@@ -1,8 +1,11 @@
 from __future__ import annotations  # Needed for forward references
 from .core import XurrentApiHelper, JsonSerializableDict
-from typing import Optional, List, Dict, Type, TypeVar
+from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
 
 from enum import Enum
+
+if TYPE_CHECKING:
+    from .teams import Team
 
 class PeoplePredefinedFilter(str, Enum):
     disabled = "disabled"  # List all disabled people
@@ -19,11 +22,21 @@ class Person(JsonSerializableDict):
     #https://developer.xurrent.com/v1/people/
     __resourceUrl__ = 'people'
 
-    def __init__(self, connection_object: XurrentApiHelper, id, name: str = None, primary_email: str = None,**kwargs):
+    def __init__(self, connection_object: XurrentApiHelper, id, name: str = None, primary_email: str = None,
+                 site=None, organization=None, **kwargs):
         self._connection_object = connection_object
         self.id = id
         self.name = name
         self.primary_email = primary_email
+
+        from .sites import Site
+        self.site = (site if isinstance(site, Site)
+                     else Site.from_data(connection_object, site) if site else None)
+
+        from .organizations import Organization
+        self.organization = (organization if isinstance(organization, Organization)
+                             else Organization.from_data(connection_object, organization) if organization else None)
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -70,7 +83,7 @@ class Person(JsonSerializableDict):
         response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, person) for person in response]
     
-    def get_teams(self) -> List[Team]:
+    def get_teams(self) -> List["Team"]:
         """
         Retrieve the teams of the person.
         """
@@ -82,7 +95,7 @@ class Person(JsonSerializableDict):
     def update(self, data):
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}'
         response = self._connection_object.api_call(uri, 'PATCH', data)
-        return People.from_data(self._connection_object,response)
+        return Person.from_data(self._connection_object, response)
     
     def disable(self, prefix: str = '', postfix: str = ''):
         """
@@ -137,4 +150,54 @@ class Person(JsonSerializableDict):
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/restore'
         return self._connection_object.api_call(uri, 'POST')
 
-    
+    def get_cis(self) -> List:
+        """Retrieve configuration items for this person instance."""
+        from .configuration_items import ConfigurationItem
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/cis'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ConfigurationItem.from_data(self._connection_object, ci) for ci in response]
+
+    def get_addresses(self) -> List[dict]:
+        """Retrieve addresses for this person instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/addresses'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_contacts(self) -> List[dict]:
+        """Retrieve contact information for this person instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/contacts'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_permissions(self) -> List[dict]:
+        """Retrieve permissions for this person instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/permissions'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_ci_coverages(self) -> List[dict]:
+        """Retrieve CI coverages for this person instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/ci_coverages'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_sla_coverages(self) -> List[dict]:
+        """Retrieve SLA coverages for this person instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/sla_coverages'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_service_coverages(self) -> List[dict]:
+        """Retrieve service coverages for this person instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/service_coverages'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_out_of_office_periods(self) -> List:
+        """Retrieve out-of-office periods for this person instance."""
+        from .out_of_office_periods import OutOfOfficePeriod
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/out_of_office_periods'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [OutOfOfficePeriod.from_data(self._connection_object, p) for p in response]
+
+    def get_skill_pools(self) -> List:
+        """Retrieve skill pools for this person instance."""
+        from .skill_pools import SkillPool
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/skill_pools'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [SkillPool.from_data(self._connection_object, sp) for sp in response]
+
