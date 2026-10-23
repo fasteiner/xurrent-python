@@ -12,7 +12,8 @@ class ProblemPredefinedFilter(str, Enum):
     progress_halted = "progress_halted"
     solved = "solved"
     managed_by_me = "managed_by_me"
-    assigned_to_my_teams = "assigned_to_my_teams"
+    assigned_to_my_team = "assigned_to_my_team"  # /problems/assigned_to_my_team
+    assigned_to_my_teams = "assigned_to_my_teams"  # kept unchanged for compatibility; the API answers 404 (see #37)
     assigned_to_me = "assigned_to_me"
 
     def __str__(self):

@@ -201,3 +201,11 @@ def test_get_workflows(mock_connection, problem_instance):
 def test_problem_parses_every_api_status(mock_connection, status):
     problem = Problem.from_data(mock_connection, {"id": 1, "status": status, "impact": "none"})
     assert problem.status == status
+
+
+def test_get_problems_assigned_to_my_team(mock_connection):
+    mock_connection.api_call.return_value = []
+    Problem.get_problems(mock_connection, predefinedFilter=ProblemPredefinedFilter.assigned_to_my_team)
+    mock_connection.api_call.assert_called_once_with(
+        f"{mock_connection.base_url}/problems/assigned_to_my_team", "GET"
+    )
