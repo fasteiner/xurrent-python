@@ -17,6 +17,10 @@ class TaskPredefinedFilter(str, Enum):
     assigned_to_me = "assigned_to_me"  # List all tasks that are assigned to the API user
     approval_by_me = "approval_by_me"  # List all approval tasks that are assigned to the API user and which status is different from ‘Registered’
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 class TaskStatus(str, Enum):
     registered = "registered"  # Registered
     declined = "declined"  # Declined
@@ -71,13 +75,16 @@ class Task(JsonSerializableDict):
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
-    def get_tasks(cls, connection_object: XurrentApiHelper, predefinedFilter: TaskPredefinedFilter = None, queryfilter: dict = None) -> List[T]:
+    def get_tasks(cls, connection_object: XurrentApiHelper, predefinedFilter: TaskPredefinedFilter = None, queryfilter: dict = None, max_results: Optional[int] = None) -> List[T]:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
-        response = connection_object.api_call(uri, 'GET')
+        if max_results:
+            response = connection_object.api_call(uri, 'GET', max_results=max_results)
+        else:
+            response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, task) for task in response]
 
     @staticmethod

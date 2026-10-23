@@ -50,6 +50,10 @@ class WorkflowPredefinedFilter(str, Enum):
     completed = 'completed' #/workflows/open: List all open workflows
     managed_by_me = 'managed_by_me' #/workflows/managed_by_me: List all workflows which manager is the API user
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 
 class Workflow(JsonSerializableDict):
     # https://developer.xurrent.com/v1/workflows/

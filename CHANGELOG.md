@@ -52,6 +52,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RequestTemplates: added `RequestTemplate` class with `RequestTemplatePredefinedFilter`, `RequestTemplateCategory`, `RequestTemplateStatus`, and `RequestTemplateImpact` enums; supports CRUD and enable/disable.
 - UiExtensions: added `UiExtension` class with `UiExtensionCategory` enum; supports CRUD and enable/disable.
 - WorkflowTemplates: added `WorkflowTemplate` class with `WorkflowTemplatePredefinedFilter` and `WorkflowTemplateCategory` enums; supports CRUD and enable/disable.
+- Core: added an optional `timeout` (seconds) to `XurrentApiHelper` for every HTTP request; without it requests wait without limit as before.
+- Problems: added `ProblemPredefinedFilter.assigned_to_my_team` (`/problems/assigned_to_my_team`); the existing `assigned_to_my_teams` builds a URL the API answers with 404 and is left unchanged for compatibility.
+- ProjectTasks: added `ProjectTask` class with `ProjectTaskPredefinedFilter`, `ProjectTaskStatus`, and `ProjectTaskCategory` enums; supports get, list, update, and notes (`get_notes`, `add_note`).
+- Core: added `max_results` to `api_call()` to stop paginating once enough records were fetched (the page size is reduced accordingly).
+- Core/Requests/Tasks/Problems/KnowledgeArticles: added `max_results` to `search()`, `get_requests()`, `get_tasks()`, `get_problems()`, and `get_knowledge_articles()`.
 
 ### Changed
 
@@ -66,6 +71,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core/People/Requests/Tasks/Workflows: restored lazy-loaded cross-module references in type annotations and fixed `Task` sub-resource helper name resolution so flake8 no longer reports `F821` undefined names.
 - Core: URL-encode `search()` query parameters so spaces and reserved characters do not produce ambiguous request URLs.
 - CI: strip an optional leading `v` from release tags before computing the forced patch bump in `release.yml`.
+- Core: `api_call()` stops paginating when a follow-up page only repeats records already fetched; `search()` no longer loops forever when there are more results than fit on one page (the `/search` endpoint keeps sending a `next` link with the same results).
+- Tasks/Requests/People/Teams/Workflows/ConfigurationItems: predefined filter enums without `__str__` (`TaskPredefinedFilter`, `PredefinedNotesFilter`, `PeoplePredefinedFilter`, `TeamPredefinedFilter`, `WorkflowPredefinedFilter`, `ConfigurationItemPredefinedFilter`) now format as their value, so URLs are correct on Python 3.12+ (e.g. `/tasks/assigned_to_me` instead of `/tasks/TaskPredefinedFilter.assigned_to_me`); `str()` is unchanged.
+- Tests: `test_client_credentials_fetches_token` expects the token endpoint derived from `base_url`.
+- KnowledgeArticles/Problems: added the missing API values to `KnowledgeArticleStatus` (`work_in_progress`, `archived`), `ProblemStatus` (`declined`, `assigned`, `accepted`, `waiting_for`, `analyzed`, `change_requested`, `workflow_pending`, `on_backlog`, `project_pending`) and `ProblemImpact` (`none`); listing articles or problems no longer fails with `ValueError` when one record has such a value.
 
 ## [0.11.0] - 2026-04-13
 

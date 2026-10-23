@@ -262,6 +262,22 @@ continues to work unchanged, but only one authentication method may be used per 
     task.approve()
 ```
 
+#### Project Tasks
+
+```python
+    from xurrent.project_tasks import ProjectTask, ProjectTaskPredefinedFilter
+
+    project_task = ProjectTask.get_by_id(x_api_helper, <id>)
+
+    # get the project tasks assigned to the API user (at most 50)
+    project_tasks = ProjectTask.get_project_tasks(x_api_helper, predefinedFilter=ProjectTaskPredefinedFilter.assigned_to_me, max_results=50)
+
+    # notes
+    notes = project_task.get_notes()
+    project_task.add_note("This is a test note")
+    project_task.add_note({"text": "This is a test note", "suppress_note_added_notifications": True})
+```
+
 #### Teams
 
 ```python
@@ -300,6 +316,24 @@ continues to work unchanged, but only one authentication method may be used per 
     #close with completion reason and note
     workflow.close(completion_reason="withdrawn", note="This is a test note")
 
+```
+
+### Limiting results
+
+List calls follow the pagination of the API and return all records by default. Pass
+`max_results` to stop after that many records:
+
+```python
+    from xurrent.requests import Request
+
+    # at most 25 requests assigned to the API user
+    requests = Request.get_requests(x_api_helper, predefinedFiler="assigned_to_me", max_results=25)
+
+    # at most 10 knowledge articles matching a full-text search, sorted by relevance
+    results = x_api_helper.search("printer", types=["knowledge-article"], max_results=10)
+
+    # plain API call
+    x_api_helper.api_call("/requests/open", "GET", max_results=100)
 ```
 
 ### Bulk Export

@@ -12,7 +12,8 @@ class ProblemPredefinedFilter(str, Enum):
     progress_halted = "progress_halted"
     solved = "solved"
     managed_by_me = "managed_by_me"
-    assigned_to_my_teams = "assigned_to_my_teams"
+    assigned_to_my_team = "assigned_to_my_team"  # /problems/assigned_to_my_team
+    assigned_to_my_teams = "assigned_to_my_teams"  # kept unchanged for compatibility; the API answers 404 (see #37)
     assigned_to_me = "assigned_to_me"
 
     def __str__(self):
@@ -21,7 +22,16 @@ class ProblemPredefinedFilter(str, Enum):
 
 class ProblemStatus(str, Enum):
     registered = "registered"
+    declined = "declined"
+    assigned = "assigned"
+    accepted = "accepted"
     in_progress = "in_progress"
+    waiting_for = "waiting_for"
+    analyzed = "analyzed"
+    change_requested = "change_requested"
+    workflow_pending = "workflow_pending"
+    on_backlog = "on_backlog"
+    project_pending = "project_pending"
     progress_halted = "progress_halted"
     solved = "solved"
 
@@ -30,6 +40,7 @@ class ProblemStatus(str, Enum):
 
 
 class ProblemImpact(str, Enum):
+    none = "none"
     low = "low"
     medium = "medium"
     high = "high"
@@ -95,13 +106,17 @@ class Problem(JsonSerializableDict):
     @classmethod
     def get_problems(cls, connection_object: XurrentApiHelper,
                      predefinedFilter: ProblemPredefinedFilter = None,
-                     queryfilter: dict = None) -> List[T]:
+                     queryfilter: dict = None,
+                     max_results: Optional[int] = None) -> List[T]:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
-        response = connection_object.api_call(uri, 'GET')
+        if max_results:
+            response = connection_object.api_call(uri, 'GET', max_results=max_results)
+        else:
+            response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, item) for item in response]
 
     def update(self, data: dict) -> T:
