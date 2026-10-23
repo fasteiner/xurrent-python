@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RequestTemplates: added `RequestTemplate` class with `RequestTemplatePredefinedFilter`, `RequestTemplateCategory`, `RequestTemplateStatus`, and `RequestTemplateImpact` enums; supports CRUD and enable/disable.
 - UiExtensions: added `UiExtension` class with `UiExtensionCategory` enum; supports CRUD and enable/disable.
 - WorkflowTemplates: added `WorkflowTemplate` class with `WorkflowTemplatePredefinedFilter` and `WorkflowTemplateCategory` enums; supports CRUD and enable/disable.
+- Core: added an optional `timeout` (seconds) to `XurrentApiHelper` for every HTTP request; without it requests wait without limit as before.
 - Problems: added `ProblemPredefinedFilter.assigned_to_my_team` (`/problems/assigned_to_my_team`); the existing `assigned_to_my_teams` builds a URL the API answers with 404 and is left unchanged for compatibility.
 - ProjectTasks: added `ProjectTask` class with `ProjectTaskPredefinedFilter`, `ProjectTaskStatus`, and `ProjectTaskCategory` enums; supports get, list, update, and notes (`get_notes`, `add_note`).
 - Core: added `max_results` to `api_call()` to stop paginating once enough records were fetched (the page size is reduced accordingly).

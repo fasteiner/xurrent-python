@@ -61,7 +61,8 @@ class XurrentApiHelper:
         resolve_user=True,
         logger: Logger=None,
         client_id: Optional[str]=None,
-        client_secret: Optional[str]=None
+        client_secret: Optional[str]=None,
+        timeout: Optional[float]=None
     ):
         """
         Initialize the Xurrent API helper.
@@ -73,8 +74,10 @@ class XurrentApiHelper:
         :param client_secret: OAuth client secret to use when fetching an access token
         :param resolve_user: Resolve the API user and their teams (default: True)
         :param logger: Logger to use (optional), otherwise a new logger is created
+        :param timeout: Seconds to wait for each HTTP request (default: None, wait without limit)
         """
         self.base_url = base_url
+        self.timeout = timeout
         self.api_account = api_account
         self._client_id = client_id
         self._client_secret = client_secret
@@ -147,7 +150,7 @@ class XurrentApiHelper:
         }
 
         try:
-            response = requests.post(token_url, data=payload)
+            response = requests.post(token_url, data=payload, **self._timeout_kwargs())
             response.raise_for_status()
         except requests.exceptions.RequestException as exc:
             self.logger.error(f'Failed to obtain OAuth access token: {exc}')
@@ -280,9 +283,9 @@ class XurrentApiHelper:
                     
                     # Make the HTTP request - use session if available, otherwise direct request
                     if hasattr(self, '__session'):
-                        response = self.__session.request(method, next_page_url, json=data)
+                        response = self.__session.request(method, next_page_url, json=data, **self._timeout_kwargs())
                     else:
-                        response = requests.request(method, next_page_url, headers=headers, json=data)
+                        response = requests.request(method, next_page_url, headers=headers, json=data, **self._timeout_kwargs())
                     
                     if response.status_code == 204:
                         return None
@@ -350,6 +353,11 @@ class XurrentApiHelper:
                 self.logger.error('Still receiving 401 Unauthorized after token refresh, authentication failed')
                 raise requests.exceptions.HTTPError('Authentication failed: 401 Unauthorized received even after token refresh')
         return result
+
+    def _timeout_kwargs(self) -> dict:
+        """Keyword arguments for requests; empty when no timeout is set (unchanged behaviour)."""
+        timeout = getattr(self, 'timeout', None)
+        return {'timeout': timeout} if timeout else {}
 
     @staticmethod
     def _record_key(item):

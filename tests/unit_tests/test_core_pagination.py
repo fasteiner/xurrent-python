@@ -145,3 +145,22 @@ def test_request_notes_filter_url():
     connection.api_call.return_value = []
     Request(connection, 5).get_notes(predefinedFilter=PredefinedNotesFilter.internal)
     connection.api_call.assert_called_once_with("https://api.example.com/requests/5/notes/internal", "GET")
+
+
+def test_no_timeout_by_default(fake_api):
+    pages, calls = fake_api
+    helper = XurrentApiHelper(BASE, "api_key", "account", False)
+    assert helper._timeout_kwargs() == {}
+
+
+def test_timeout_is_passed_to_requests(monkeypatch):
+    seen = {}
+
+    def fake_request(method, url, headers=None, json=None, timeout=None):
+        seen["timeout"] = timeout
+        return make_response({"id": 1})
+
+    monkeypatch.setattr(requests, "request", fake_request)
+    helper = XurrentApiHelper(BASE, "api_key", "account", False, timeout=30)
+    helper.api_call("/requests/1", per_page=0)
+    assert seen["timeout"] == 30
