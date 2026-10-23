@@ -73,6 +73,10 @@ class PredefinedNotesFilter(str, Enum):
     public = "public"  # /requests/public
     internal = "internal"  # /requests/internal
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 
 T = TypeVar("T", bound="Request")  # Define the type variable
 
@@ -180,19 +184,24 @@ class Request(JsonSerializableDict):
         return cls.from_data(connection_object=connection_object, data=response)
 
     @classmethod
-    def get_requests(cls, connection_object: XurrentApiHelper, predefinedFiler: PredefinedFilter = None,queryfilter: dict = None) -> List[T]:
+    def get_requests(cls, connection_object: XurrentApiHelper, predefinedFiler: PredefinedFilter = None,queryfilter: dict = None, max_results: Optional[int] = None) -> List[T]:
         """
-        Retrieve a request by its ID.
+        Retrieve requests, optionally filtered.
         :param connection_object: Instance of XurrentApiHelper
-        :param id: ID of the request to retrieve
-        :return: Request data
+        :param predefinedFiler: Predefined filter (e.g. PredefinedFilter.assigned_to_me)
+        :param queryfilter: Dictionary of filter parameters
+        :param max_results: Return at most this many requests (default: None, all)
+        :return: List of Request instances
         """
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFiler:
             uri += f'/{predefinedFiler}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
-        response = connection_object.api_call(uri, 'GET')
+        if max_results:
+            response = connection_object.api_call(uri, 'GET', max_results=max_results)
+        else:
+            response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, item) for item in response]
 
     def add_note(self, note: dict) -> dict:

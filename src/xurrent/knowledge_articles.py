@@ -63,13 +63,17 @@ class KnowledgeArticle(JsonSerializableDict):
     @classmethod
     def get_knowledge_articles(cls, connection_object: XurrentApiHelper,
                                predefinedFilter: KnowledgeArticlePredefinedFilter = None,
-                               queryfilter: dict = None) -> List[T]:
+                               queryfilter: dict = None,
+                               max_results: Optional[int] = None) -> List[T]:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
-        response = connection_object.api_call(uri, 'GET')
+        if max_results:
+            response = connection_object.api_call(uri, 'GET', max_results=max_results)
+        else:
+            response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, item) for item in response]
 
     def update(self, data: dict) -> T:
