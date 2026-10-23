@@ -24,11 +24,11 @@ def mock_connection():
 def project_task_instance(mock_connection):
     return ProjectTask(
         connection_object=mock_connection,
-        id=24563,
-        subject="Prepare infrastructure",
+        id=101,
+        subject="Prepare test environment",
         status="assigned",
         category="activity",
-        project={"id": 7499, "subject": "Expense Reporting"},
+        project={"id": 40, "subject": "Cloud Migration"},
         manager={"id": 5, "name": "Manager"},
         team={"id": 3, "name": "Operations"},
     )
@@ -37,12 +37,12 @@ def project_task_instance(mock_connection):
 def test_project_task_initialization(project_task_instance):
     assert isinstance(project_task_instance, ProjectTask)
     assert project_task_instance.__resourceUrl__ == "project_tasks"
-    assert project_task_instance.id == 24563
+    assert project_task_instance.id == 101
     assert project_task_instance.status == ProjectTaskStatus.assigned
     assert isinstance(project_task_instance.manager, Person)
     assert project_task_instance.manager.name == "Manager"
     assert isinstance(project_task_instance.team, Team)
-    assert project_task_instance.project == {"id": 7499, "subject": "Expense Reporting"}
+    assert project_task_instance.project == {"id": 40, "subject": "Cloud Migration"}
 
 
 def test_project_task_keeps_unknown_status(mock_connection):
@@ -59,19 +59,19 @@ def test_project_task_from_data_validation(mock_connection):
 
 def test_project_task_str(project_task_instance):
     assert str(project_task_instance) == (
-        "ProjectTask(id=24563, subject=Prepare infrastructure, status=assigned, category=activity)"
+        "ProjectTask(id=101, subject=Prepare test environment, status=assigned, category=activity)"
     )
-    assert project_task_instance.ref_str() == "ProjectTask(id=24563, subject=Prepare infrastructure)"
+    assert project_task_instance.ref_str() == "ProjectTask(id=101, subject=Prepare test environment)"
 
 
 def test_get_project_task_by_id(mock_connection):
-    mock_connection.api_call.return_value = {"id": 24563, "subject": "Prepare infrastructure"}
-    result = ProjectTask.get_by_id(mock_connection, 24563)
+    mock_connection.api_call.return_value = {"id": 101, "subject": "Prepare test environment"}
+    result = ProjectTask.get_by_id(mock_connection, 101)
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/project_tasks/24563", "GET"
+        f"{mock_connection.base_url}/project_tasks/101", "GET"
     )
     assert isinstance(result, ProjectTask)
-    assert result.id == 24563
+    assert result.id == 101
 
 
 def test_get_project_tasks(mock_connection):
@@ -104,10 +104,10 @@ def test_get_project_tasks_with_queryfilter(mock_connection):
 
 
 def test_update_project_task(mock_connection, project_task_instance):
-    mock_connection.api_call.return_value = {"id": 24563, "status": "accepted"}
+    mock_connection.api_call.return_value = {"id": 101, "status": "accepted"}
     result = project_task_instance.update({"status": "accepted"})
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/project_tasks/24563", "PATCH", {"status": "accepted"}
+        f"{mock_connection.base_url}/project_tasks/101", "PATCH", {"status": "accepted"}
     )
     assert result.status == "accepted"
 
@@ -120,19 +120,19 @@ def test_update_project_task_by_id(mock_connection):
 
 
 def test_get_project_task_notes(mock_connection, project_task_instance):
-    mock_connection.api_call.return_value = [{"id": 3179, "text": "note"}]
+    mock_connection.api_call.return_value = [{"id": 11, "text": "note"}]
     notes = project_task_instance.get_notes()
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/project_tasks/24563/notes", "GET"
+        f"{mock_connection.base_url}/project_tasks/101/notes", "GET"
     )
-    assert notes == [{"id": 3179, "text": "note"}]
+    assert notes == [{"id": 11, "text": "note"}]
 
 
 def test_add_project_task_note_text(mock_connection, project_task_instance):
     mock_connection.api_call.return_value = {"id": 1, "text": "Hello"}
     project_task_instance.add_note("Hello")
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/project_tasks/24563/notes", "POST", {"text": "Hello"}
+        f"{mock_connection.base_url}/project_tasks/101/notes", "POST", {"text": "Hello"}
     )
 
 
@@ -140,7 +140,7 @@ def test_add_project_task_note_dict(mock_connection, project_task_instance):
     note = {"text": "Hello", "suppress_note_added_notifications": True}
     project_task_instance.add_note(note)
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/project_tasks/24563/notes", "POST", note
+        f"{mock_connection.base_url}/project_tasks/101/notes", "POST", note
     )
 
 
