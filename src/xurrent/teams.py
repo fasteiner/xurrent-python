@@ -8,6 +8,10 @@ class TeamPredefinedFilter(str, Enum):
     disabled = "disabled"  # List all disabled teams
     enabled = "enabled"  # List all enabled teams
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 T = TypeVar('T', bound='Team')
 
 class Team(JsonSerializableDict):
