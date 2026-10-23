@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core: `api_call()` stops paginating when a follow-up page only repeats records already fetched; `search()` no longer loops forever when there are more results than fit on one page (the `/search` endpoint keeps sending a `next` link with the same results).
 - Tasks/Requests/People/Teams/Workflows/ConfigurationItems: predefined filter enums without `__str__` (`TaskPredefinedFilter`, `PredefinedNotesFilter`, `PeoplePredefinedFilter`, `TeamPredefinedFilter`, `WorkflowPredefinedFilter`, `ConfigurationItemPredefinedFilter`) now format as their value, so URLs are correct on Python 3.12+ (e.g. `/tasks/assigned_to_me` instead of `/tasks/TaskPredefinedFilter.assigned_to_me`); `str()` is unchanged.
 - Tests: `test_client_credentials_fetches_token` expects the token endpoint derived from `base_url`.
+- KnowledgeArticles/Problems: added the missing API values to `KnowledgeArticleStatus` (`work_in_progress`, `archived`), `ProblemStatus` (`declined`, `assigned`, `accepted`, `waiting_for`, `analyzed`, `change_requested`, `workflow_pending`, `on_backlog`, `project_pending`) and `ProblemImpact` (`none`); listing articles or problems no longer fails with `ValueError` when one record has such a value.
 
 ## [0.11.0] - 2026-04-13
 

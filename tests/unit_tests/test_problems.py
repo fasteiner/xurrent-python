@@ -191,3 +191,13 @@ def test_get_workflows(mock_connection, problem_instance):
     )
     assert len(results) == 2
     assert all(isinstance(r, Workflow) for r in results)
+
+
+@pytest.mark.parametrize("status", [
+    "declined", "assigned", "accepted", "in_progress", "waiting_for", "analyzed",
+    "change_requested", "workflow_pending", "on_backlog", "project_pending",
+    "progress_halted", "solved",
+])
+def test_problem_parses_every_api_status(mock_connection, status):
+    problem = Problem.from_data(mock_connection, {"id": 1, "status": status, "impact": "none"})
+    assert problem.status == status

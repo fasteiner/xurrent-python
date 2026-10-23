@@ -21,7 +21,16 @@ class ProblemPredefinedFilter(str, Enum):
 
 class ProblemStatus(str, Enum):
     registered = "registered"
+    declined = "declined"
+    assigned = "assigned"
+    accepted = "accepted"
     in_progress = "in_progress"
+    waiting_for = "waiting_for"
+    analyzed = "analyzed"
+    change_requested = "change_requested"
+    workflow_pending = "workflow_pending"
+    on_backlog = "on_backlog"
+    project_pending = "project_pending"
     progress_halted = "progress_halted"
     solved = "solved"
 
@@ -30,6 +39,7 @@ class ProblemStatus(str, Enum):
 
 
 class ProblemImpact(str, Enum):
+    none = "none"
     low = "low"
     medium = "medium"
     high = "high"

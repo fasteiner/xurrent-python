@@ -154,3 +154,9 @@ def test_get_translations(mock_connection, ka_instance):
         f"{mock_connection.base_url}/knowledge_articles/80/translations", "GET"
     )
     assert result == translations_data
+
+
+@pytest.mark.parametrize("status", ["work_in_progress", "not_validated", "validated", "archived"])
+def test_knowledge_article_parses_every_api_status(mock_connection, status):
+    article = KnowledgeArticle.from_data(mock_connection, {"id": 1, "status": status})
+    assert article.status == status

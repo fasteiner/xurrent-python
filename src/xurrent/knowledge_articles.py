@@ -16,8 +16,10 @@ class KnowledgeArticlePredefinedFilter(str, Enum):
 
 
 class KnowledgeArticleStatus(str, Enum):
+    work_in_progress = "work_in_progress"
     not_validated = "not_validated"
     validated = "validated"
+    archived = "archived"
 
     def __str__(self):
         return self.value
