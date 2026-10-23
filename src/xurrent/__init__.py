@@ -14,6 +14,7 @@ from .people import Person, PeoplePredefinedFilter
 from .problems import Problem, ProblemPredefinedFilter, ProblemStatus, ProblemImpact
 from .product_categories import ProductCategory, ProductCategoryRuleSet
 from .products import Product, ProductPredefinedFilter, ProductDepreciationMethod
+from .project_tasks import ProjectTask, ProjectTaskPredefinedFilter, ProjectTaskStatus, ProjectTaskCategory
 from .projects import Project, ProjectPredefinedFilter, ProjectStatus, ProjectCategory
 from .releases import Release, ReleasePredefinedFilter, ReleaseStatus, ReleaseImpact
 from .request_templates import RequestTemplate, RequestTemplatePredefinedFilter, RequestTemplateCategory, RequestTemplateStatus, RequestTemplateImpact
