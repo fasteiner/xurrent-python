@@ -25,7 +25,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.9"
-requests = "^2.32.3"
+# requests 2.33.0 fixes CVE-2026-25645 but needs Python 3.10; on 3.9 the floor is 2.32.4 (CVE-2024-47081).
+requests = [
+    { version = "^2.33.0", python = ">=3.10" },
+    { version = ">=2.32.4,<3.0.0", python = "<3.10" },
+]
 
 
 [tool.poetry.group.dev.dependencies]
