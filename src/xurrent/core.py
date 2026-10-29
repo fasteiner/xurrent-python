@@ -7,8 +7,13 @@ import logging
 import json
 import re
 import base64
+from urllib.parse import urlencode
 from logging import Logger
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .people import Person
+    from .teams import Team
 
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
@@ -45,8 +50,8 @@ class JsonSerializableDict(dict):
 
 
 class XurrentApiHelper:
-    api_user: Person # Forward declaration with a string
-    api_user_teams: List[Team] # Forward declaration with a string
+    api_user: "Person"
+    api_user_teams: List["Team"]
 
     def __init__(
         self,
@@ -387,6 +392,66 @@ class XurrentApiHelper:
                 file.write(result)
             return True
         return result
+
+    def search(self, query: str, types: list = None) -> list:
+        """
+        Perform a cross-resource full-text search.
+        :param query: Search query string
+        :param types: Optional list of resource types to search (e.g. ['request', 'person'])
+        :return: List of search results
+        """
+        params = {'q': query}
+        if types:
+            params['types'] = ','.join(types)
+        uri = f"/search?{urlencode(params)}"
+        return self.api_call(uri, 'GET')
+
+    def bulk_import(self, data: str, import_type: str, import_format: str = 'csv') -> dict:
+        """
+        Perform a bulk import of records.
+        :param data: CSV/TSV data as a string
+        :param import_type: Resource type to import (e.g. 'people', 'configuration_items')
+        :param import_format: Format of the import data ('csv' or 'tsv', default: 'csv')
+        :return: Import result from the API
+        """
+        return self.api_call('/import', method='POST', data={
+            'type': import_type,
+            'import_format': import_format,
+            'data': data
+        })
+
+    def list_archive(self, queryfilter: dict = None) -> list:
+        """
+        List all archived items.
+        :param queryfilter: Optional query filter parameters
+        :return: List of archived items
+        """
+        uri = '/archive'
+        if queryfilter:
+            uri += '?' + self.create_filter_string(queryfilter)
+        return self.api_call(uri, 'GET')
+
+    def list_trash(self, queryfilter: dict = None) -> list:
+        """
+        List all trashed items.
+        :param queryfilter: Optional query filter parameters
+        :return: List of trashed items
+        """
+        uri = '/trash'
+        if queryfilter:
+            uri += '?' + self.create_filter_string(queryfilter)
+        return self.api_call(uri, 'GET')
+
+    def list_audit_lines(self, queryfilter: dict = None) -> list:
+        """
+        List audit log entries.
+        :param queryfilter: Optional query filter parameters
+        :return: List of audit log entries
+        """
+        uri = '/audit_lines'
+        if queryfilter:
+            uri += '?' + self.create_filter_string(queryfilter)
+        return self.api_call(uri, 'GET')
 
     def custom_fields_to_object(self, custom_fields):
         """

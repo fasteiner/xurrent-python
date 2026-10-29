@@ -14,7 +14,7 @@ class ConfigurationItem(JsonSerializableDict):
     # https://developer.xurrent.com/v1/configuration_items/
     __resourceUrl__ = 'cis'
 
-    def __init__(self, 
+    def __init__(self,
                  connection_object: XurrentApiHelper,
                  id: int,
                  label: Optional[str] = None,
@@ -22,6 +22,7 @@ class ConfigurationItem(JsonSerializableDict):
                  type: Optional[str] = None,
                  status: Optional[str] = None,
                  attributes: Optional[Dict] = None,
+                 product: Optional[Dict] = None,
                  **kwargs):
         self.id = id
         self._connection_object = connection_object
@@ -29,7 +30,11 @@ class ConfigurationItem(JsonSerializableDict):
         self.name = name
         self.status = status
         self.attributes = attributes or {}
-        
+
+        from .products import Product
+        self.product = (product if isinstance(product, Product)
+                        else Product.from_data(connection_object, product) if product else None)
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
