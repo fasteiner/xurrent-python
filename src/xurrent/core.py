@@ -7,7 +7,7 @@ import logging
 import json
 import re
 import base64
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from logging import Logger
 from typing import Optional, List, TYPE_CHECKING
 
@@ -46,6 +46,29 @@ class JsonSerializableDict(dict):
     def to_json(self):
         """Convert the dictionary to a JSON string."""
         return json.dumps(self.to_dict())
+
+
+def list_notes(connection_object: XurrentApiHelper, uri: str, queryfilter: dict = None,
+               sort: Optional[str] = None, max_results: Optional[int] = None) -> List[dict]:
+    """
+    List the notes collection at uri; shared by the get_notes() methods of all record types.
+    :param connection_object: XurrentApiHelper instance
+    :param uri: URI of the notes collection, e.g. f'{base_url}/requests/5/notes'
+    :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+    :param sort: Optional value of the ?sort= parameter: id, person_id or created_at, comma-separated,
+                 a leading minus sorts descending (e.g. '-created_at' for the newest note first).
+                 Default: the order of the API (ascending by id).
+    :param max_results: Return at most this many notes and fetch only the pages needed for them
+                        (e.g. max_results=1: one call with per_page=1). Default: all notes.
+    :return: List of notes
+    """
+    if queryfilter:
+        uri += '?' + connection_object.create_filter_string(queryfilter)
+    if sort:
+        uri += ('&' if '?' in uri else '?') + f"sort={quote(sort, safe=',')}"
+    if max_results:
+        return connection_object.api_call(uri, 'GET', max_results=max_results)
+    return connection_object.api_call(uri, 'GET')
 
 
 

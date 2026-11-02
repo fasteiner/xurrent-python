@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ProjectTasks: added `ProjectTask` class with `ProjectTaskPredefinedFilter`, `ProjectTaskStatus`, and `ProjectTaskCategory` enums; supports get, list, update, and notes (`get_notes`, `add_note`).
 - Core: added `max_results` to `api_call()` to stop paginating once enough records were fetched (the page size is reduced accordingly).
 - Core/Requests/Tasks/Problems/KnowledgeArticles: added `max_results` to `search()`, `get_requests()`, `get_tasks()`, `get_problems()`, and `get_knowledge_articles()`.
+- Requests/Tasks/Problems/ProjectTasks/Workflows/Projects/Releases: added `sort` (the API's `?sort=` parameter, e.g. `-created_at`) and `max_results` to `get_notes()`, so `get_notes(sort='-created_at', max_results=1)` reads only the newest note, in one call with `per_page=1`; without them `get_notes()` behaves as before.
 
 ### Changed
 

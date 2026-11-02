@@ -228,6 +228,9 @@ continues to work unchanged, but only one authentication method may be used per 
     # get all request notes with a specific subject
     request_notes = request.get_notes(x_api_helper, predefinedFilter="public")
 
+    # only the newest note (one API call with per_page=1); the same for tasks, problems, project tasks, ...
+    newest = request.get_notes(sort="-created_at", max_results=1)
+
     request.add_note("This is a test note")
     request.add_note({
         "text": "This is a test note",
