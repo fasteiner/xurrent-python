@@ -1,5 +1,5 @@
 from __future__ import annotations  # Needed for forward references
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes
 from enum import Enum
 from datetime import datetime
 from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
@@ -217,9 +217,14 @@ class Request(JsonSerializableDict):
             # this will post the note publically as the API User
             return self._connection_object.api_call(uri, 'POST', {'text': note})
 
-    def get_notes(self, predefinedFilter: PredefinedNotesFilter=None, queryfilter : dict = None) -> List[dict]:
+    def get_notes(self, predefinedFilter: PredefinedNotesFilter=None, queryfilter : dict = None,
+                  sort: Optional[str] = None, max_results: Optional[int] = None) -> List[dict]:
         """
-        Retrieve all notes associated with the current request instance.
+        Retrieve the notes of the current request instance.
+        :param predefinedFilter: Optional predefined filter (public or internal notes)
+        :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+        :param sort: Optional order, e.g. '-created_at' for the newest note first (default: ascending by id)
+        :param max_results: Return at most this many notes, fetching only the pages needed (default: all)
         :return: List of notes
         """
         if not self.id:
@@ -227,9 +232,7 @@ class Request(JsonSerializableDict):
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
         if predefinedFilter:
             uri += f'/{predefinedFilter}'
-        if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        return self._connection_object.api_call(uri, 'GET')
+        return list_notes(self._connection_object, uri, queryfilter, sort, max_results)
 
     def get_note_by_id(self, note_id) -> dict:
         """

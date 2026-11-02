@@ -1,7 +1,7 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
 from typing import Optional, List, Dict, TYPE_CHECKING
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes
 from enum import Enum
 
 if TYPE_CHECKING:
@@ -231,12 +231,17 @@ class Workflow(JsonSerializableDict):
         response = self._connection_object.api_call(uri, 'POST')
         return Workflow.from_data(self._connection_object,response)
 
-    def get_notes(self, queryfilter: dict = None) -> List[dict]:
-        """Retrieve all notes associated with the current workflow instance."""
+    def get_notes(self, queryfilter: dict = None, sort: Optional[str] = None,
+                  max_results: Optional[int] = None) -> List[dict]:
+        """
+        Retrieve the notes of the current workflow.
+        :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+        :param sort: Optional order, e.g. '-created_at' for the newest note first (default: ascending by id)
+        :param max_results: Return at most this many notes, fetching only the pages needed (default: all)
+        :return: List of notes
+        """
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
-        if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        return self._connection_object.api_call(uri, 'GET')
+        return list_notes(self._connection_object, uri, queryfilter, sort, max_results)
 
     def add_note(self, note) -> dict:
         """Add a note to the current workflow instance."""
