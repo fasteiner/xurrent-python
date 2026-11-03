@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict, list_notes
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='Project')
@@ -54,8 +54,8 @@ class Project(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = ProjectStatus(status) if isinstance(status, str) else status
-        self.category = ProjectCategory(category) if isinstance(category, str) else category
+        self.status = enum_or_raw(ProjectStatus, status)
+        self.category = enum_or_raw(ProjectCategory, category)
 
         from .people import Person
         self.manager = (manager if isinstance(manager, Person)

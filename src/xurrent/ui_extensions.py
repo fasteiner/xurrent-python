@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='UiExtension')
@@ -51,7 +51,7 @@ class UiExtension(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.name = name
-        self.category = UiExtensionCategory(category) if category else None
+        self.category = enum_or_raw(UiExtensionCategory, category) if category else None
         self.disabled = disabled
         self.title = title
 
