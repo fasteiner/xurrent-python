@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Docs: API reference generated from the source code in `docs/api/`: a page per class with its fields, enums, methods (signature, description and the API endpoint each one calls) and cross references in both directions, plus an overview of all classes and enums; `python docs/generate_api_docs.py` regenerates it (`--check` verifies it, `--wiki DIR` writes the same pages for the GitHub wiki) and a unit test fails while it is out of date. The README links to it with a table of all classes.
+- Docs: API reference generated from the source code in `docs/api/`: a page per class with its fields, enums, methods (signature, description and the API endpoint each one calls) and cross references in both directions, plus an overview of all classes and enums; `python docs/generate_api_docs.py` regenerates it (`--check` verifies it, `--wiki DIR` writes the same pages for the GitHub wiki, with absolute links because GitHub serves the wiki home page at `/wiki` without a trailing slash) and a unit test fails while it is out of date. The README links to it with a table of all classes.
 - Docs: one-line docstrings for all domain classes and `XurrentApiHelper` (shown by `help()`, IDEs and the API reference).
 
 ### Fixed
