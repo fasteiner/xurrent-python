@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Problems: added `Problem` class with `ProblemPredefinedFilter`, `ProblemStatus`, and `ProblemImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, workflows, notes).
-- ServiceInstances: added `ServiceInstance` class with `ServiceInstancePredefinedFilter` and `ServiceInstanceStatus` enums; supports CRUD and sub-resources (cis, slas, users).
+- Problems: added `Problem` class with `ProblemPredefinedFilter`, `ProblemStatus`, and `ProblemImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, notes).
+- ServiceInstances: added `ServiceInstance` class with `ServiceInstancePredefinedFilter` and `ServiceInstanceStatus` enums; supports CRUD and sub-resources (cis, slas).
 - Releases: added `Release` class with `ReleasePredefinedFilter`, `ReleaseStatus`, and `ReleaseImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (workflows, notes).
 - Projects: added `Project` class with `ProjectPredefinedFilter`, `ProjectStatus`, and `ProjectCategory` enums; supports CRUD, archive/trash/restore, and sub-resources (tasks, phases, workflows, risks, notes).
 - Contracts: added `Contract` class with `ContractPredefinedFilter` and `ContractStatus` enums; supports CRUD and CI listing.
@@ -18,13 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Risks: added `Risk` class with `RiskPredefinedFilter`, `RiskStatus`, and `RiskSeverity` enums; supports CRUD, archive/trash/restore, and sub-resources (organizations, projects, services).
 - ServiceOfferings: added `ServiceOffering` class with `ServiceOfferingPredefinedFilter` and `ServiceOfferingStatus` enums; supports CRUD.
 - SkillPools: added `SkillPool` class with `SkillPoolPredefinedFilter` enum; supports CRUD, enable/disable, and sub-resources (members, effort_classes).
-- Requests: added `get_attachments`, `get_knowledge_articles`, `get_automation_rules`, `get_satisfaction_feedback`, `get_tags`, and `get_watches` instance methods.
+- Requests: added `get_attachments` (attachments of all notes, `GET /requests/:id/note_attachments`), `get_knowledge_articles`, `get_automation_rules`, `get_tags`, and `get_watches` instance methods.
 - Tasks: added `get_notes`, `add_note`, `get_approvals`, `get_cis`, `get_predecessors`, `get_successors`, `get_service_instances`, and `get_automation_rules` instance methods.
 - Workflows: added `get_notes`, `add_note`, `get_automation_rules`, `get_phases`, `get_requests`, and `get_problems` instance methods.
 - People: added `get_cis`, `get_addresses`, `get_contacts`, `get_permissions`, `get_ci_coverages`, `get_sla_coverages`, `get_service_coverages`, `get_out_of_office_periods`, and `get_skill_pools` instance methods.
 - Organizations: added `get_addresses`, `get_contacts`, `get_contracts`, `get_risks`, `get_slas`, and `get_time_allocations` instance methods.
-- Services: added `get_workflows`, `get_request_templates`, `get_risks`, `get_service_instances`, `get_slas`, and `get_service_offerings` instance methods.
-- Calendars: added `get_duration`, `get_hours`, and `get_holidays` instance methods.
+- Services: added `get_request_templates`, `get_risks`, `get_service_instances`, `get_slas`, and `get_service_offerings` instance methods.
+- Calendars: added `get_duration`, `get_hours` (`GET /calendars/:id/calendar_hours`), and `get_holidays` instance methods.
 - Teams: added `get_service_instances` instance method.
 - Holidays: added `get_calendars` instance method.
 - ClosureCodes: added `ClosureCode` class; supports CRUD.
@@ -79,6 +79,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tasks/Requests/People/Teams/Workflows/ConfigurationItems: predefined filter enums without `__str__` (`TaskPredefinedFilter`, `PredefinedNotesFilter`, `PeoplePredefinedFilter`, `TeamPredefinedFilter`, `WorkflowPredefinedFilter`, `ConfigurationItemPredefinedFilter`) now format as their value, so URLs are correct on Python 3.12+ (e.g. `/tasks/assigned_to_me` instead of `/tasks/TaskPredefinedFilter.assigned_to_me`); `str()` is unchanged.
 - Tests: `test_client_credentials_fetches_token` expects the token endpoint derived from `base_url`.
 - KnowledgeArticles/Problems: added the missing API values to `KnowledgeArticleStatus` (`work_in_progress`, `archived`), `ProblemStatus` (`declined`, `assigned`, `accepted`, `waiting_for`, `analyzed`, `change_requested`, `workflow_pending`, `on_backlog`, `project_pending`) and `ProblemImpact` (`none`); listing articles or problems no longer fails with `ValueError` when one record has such a value.
+
+- Calendars/Organizations/Requests (found by the read-only smoke check, each answered HTTP 404 before): `Calendar.get_hours()` reads `/calendars/:id/calendar_hours` instead of `/hours`, `Organization.get_children()` reads `/organizations/:id/children` instead of `/child_organizations`, and `Request.get_attachments()` reads `/requests/:id/note_attachments` instead of `/attachments`.
+- Tasks: `get_workflow(expand=True)` and `get_workflow_of_task(expand=True)` no longer fail with `AttributeError` (the API returns the task's `workflow` reference as a dict, the code read `.id`); `get_workflow()` returns a `Workflow` passed as the reference instead of reading the task again.
+- Risks/ServiceInstances/ServiceOfferings/Contracts/Releases/RequestTemplates: enum values corrected to the API docs and the live API: `RiskStatus` is now `anticipated`, `materialized`, `closed` (the previous values were not risk statuses); `ServiceInstanceStatus` is `being_prepared`, `in_production`, `discontinued` (was `being_created`, `active`, `discontinued`); `ServiceOfferingStatus` adds `planned`, `unpublished`, `discontinued` and drops `not_offered`; `ContractStatus` adds `being_prepared`, `scheduled_for_activation` and drops `being_created`; `ReleaseImpact` adds `none`; `RequestTemplateCategory` adds `order` and `fulfillment` (returned by the API, not in its docs).
+- Projects/Releases/Problems: removed enum values the API does not have: `ProjectStatus.being_created`, `ReleaseStatus.being_created`, `ProblemStatus.registered`.
+- Projects/Risks: `ProjectCategory` lists the default references `small`, `medium`, `large` instead of values the API does not use; project categories and risk severities are defined per account, so other references are kept as text (documented on `ProjectCategory` and `RiskSeverity`).
+- Core: the `search()` docstring says that queries need at least two characters (the API answers shorter ones with HTTP 400).
+
+### Removed
+
+- Requests/Problems/Services/ServiceInstances: removed `Request.get_satisfaction_feedback()`, `Problem.get_workflows()`, `Service.get_workflows()` and `ServiceInstance.get_users()`, which were only in preview builds: the API has no such endpoints (HTTP 404). Satisfaction can only be set (`POST /requests/:id/satisfied` or `/dissatisfied`); a problem's workflow is its `workflow` field.
 
 ## [0.11.0] - 2026-04-13
 

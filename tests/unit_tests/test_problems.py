@@ -179,20 +179,6 @@ def test_get_requests(mock_connection, problem_instance):
     assert all(isinstance(r, Request) for r in results)
 
 
-def test_get_workflows(mock_connection, problem_instance):
-    from xurrent.workflows import Workflow
-    mock_connection.api_call.return_value = [
-        {"id": 1, "subject": "Wf A"},
-        {"id": 2, "subject": "Wf B"},
-    ]
-    results = problem_instance.get_workflows()
-    mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/problems/10/workflows", "GET"
-    )
-    assert len(results) == 2
-    assert all(isinstance(r, Workflow) for r in results)
-
-
 @pytest.mark.parametrize("status", [
     "declined", "assigned", "accepted", "in_progress", "waiting_for", "analyzed",
     "change_requested", "workflow_pending", "on_backlog", "project_pending",

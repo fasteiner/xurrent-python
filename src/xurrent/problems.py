@@ -21,7 +21,6 @@ class ProblemPredefinedFilter(str, Enum):
 
 
 class ProblemStatus(str, Enum):
-    registered = "registered"
     declined = "declined"
     assigned = "assigned"
     accepted = "accepted"
@@ -152,14 +151,6 @@ class Problem(JsonSerializableDict):
             uri += '?' + self._connection_object.create_filter_string(queryfilter)
         response = self._connection_object.api_call(uri, 'GET')
         return [Request.from_data(self._connection_object, item) for item in response]
-
-    def get_workflows(self, queryfilter: dict = None) -> List:
-        from .workflows import Workflow
-        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/workflows'
-        if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        response = self._connection_object.api_call(uri, 'GET')
-        return [Workflow.from_data(self._connection_object, item) for item in response]
 
     def get_notes(self, queryfilter: dict = None, sort: Optional[str] = None,
                   max_results: Optional[int] = None) -> List[dict]:

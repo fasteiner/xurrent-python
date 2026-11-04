@@ -16,8 +16,10 @@ changes here. For every domain class in ``src/xurrent/``:
 - fields with an enum value the SDK does not know (kept as text by ``enum_or_raw``, or annotated with
   an enum but not converted).
 
-Plus ``Person.get_me``, ``search('a', max_results=3)``, ``list_archive``, ``list_trash`` and
-``list_audit_lines``. A check whose record does not exist in the account is skipped, not failed.
+Plus ``Person.get_me``, ``search('test', max_results=3)`` (the API answers queries of one character
+with HTTP 400), ``list_archive``, ``list_trash`` and ``list_audit_lines``. A check whose record does
+not exist in the account is skipped, not failed, and so are the KNOWN_SKIPS below (with their reason).
+Values of account-defined enums (ACCOUNT_DEFINED_ENUMS) are listed for information only.
 
 Safety, enforced in code:
 
@@ -82,6 +84,17 @@ DEFAULT_MAX_SECONDS = 300.0
 DEFAULT_TIMEOUT = 20.0       # seconds per HTTP request
 MIN_INTERVAL = 0.1           # seconds between two requests
 MAX_RETRY_AFTER = 10         # longest Retry-After (seconds) the run waits for after HTTP 429
+
+# Checks that are skipped on purpose: check name -> reason
+KNOWN_SKIPS = {
+    # The filter builds /problems/assigned_to_my_teams (404); kept for compatibility next to the
+    # correct ProblemPredefinedFilter.assigned_to_my_team (see CHANGELOG)
+    'Problem.get_problems[assigned_to_my_teams]': 'kept for compatibility, API answers 404',
+}
+
+# Enums whose values are references defined per account (e.g. GET /project_categories): other values
+# are not SDK errors, so they are reported for information only
+ACCOUNT_DEFINED_ENUMS = frozenset({'ProjectCategory', 'RiskSeverity'})
 
 
 # --------------------------------------------------------------------------------------------------
@@ -382,6 +395,7 @@ class Reporter:
         self.quiet = quiet
         self.results: List[CheckResult] = []
         self.enum_findings: Dict[Tuple[str, str], int] = {}   # (field, value) -> occurrences
+        self.account_values: Dict[Tuple[str, str], int] = {}  # account-defined enums, information only
 
     def has_run(self, name: str) -> bool:
         name = safe_name(name)
@@ -404,6 +418,10 @@ class Reporter:
     def enum_value(self, field: str, value) -> None:
         key = (safe_name(field, 80), safe_code(value))
         self.enum_findings[key] = self.enum_findings.get(key, 0) + 1
+
+    def account_value(self, field: str, value) -> None:
+        key = (safe_name(field, 80), safe_code(value))
+        self.account_values[key] = self.account_values.get(key, 0) + 1
 
     def _add(self, result: CheckResult) -> CheckResult:
         self.results.append(result)
@@ -446,6 +464,11 @@ class Reporter:
         if self.enum_findings:
             lines.append(f'Unknown enum values ({len(self.enum_findings)} field/value pairs):')
             for (field, value), occurrences in sorted(self.enum_findings.items()):
+                lines.append(f'  {field} = {value!r}  ({occurrences}x)')
+        if self.account_values:
+            lines.append(f'Account-defined enum values not in the SDK enum (information only, '
+                         f'{len(self.account_values)}):')
+            for (field, value), occurrences in sorted(self.account_values.items()):
                 lines.append(f'  {field} = {value!r}  ({occurrences}x)')
         gaps = [r for r in self.results if r.fields and r.fields[2]]
         if gaps:
@@ -532,6 +555,8 @@ def unknown_enum_values(result) -> List[Tuple[str, str, str]]:
         for attr, (enum_cls, source) in enum_fields(type(record)).items():
             value = getattr(record, attr, None)
             if type(value) is str and value not in {m.value for m in enum_cls}:
+                if enum_cls.__name__ in ACCOUNT_DEFINED_ENUMS:
+                    source = 'account-defined'
                 found.append((f'{type(record).__name__}.{attr}', value, source))
     return found
 
@@ -676,7 +701,7 @@ RECIPES: Dict[Tuple[str, str], Callable[[], dict]] = {
 }
 
 
-def resolve_argument(cls, method: Method, param: str, record, cache: dict):
+def resolve_argument(cls, method: Method, param: str, record, cache: dict, connection=None):
     """Value for a required argument, taken from the record or earlier results; raises Skip."""
     recipe = RECIPES.get((cls.__name__, method.name))
     if recipe and param in recipe():
@@ -692,10 +717,17 @@ def resolve_argument(cls, method: Method, param: str, record, cache: dict):
             raise Skip('no note')
         return value
     if param == 'templateID':
-        value = _template_id(cache.get('get_tasks'))
-        if value is None:
+        if 'templateID' not in cache:
+            tasks = cache.get('get_tasks') or []
+            value = _template_id(tasks)
+            if value is None and tasks and connection is not None:
+                # Task lists do not include the template; the full task does
+                from xurrent.tasks import Task
+                value = _template_id([Task.get_by_id(connection, tasks[0].id)])
+            cache['templateID'] = value
+        if cache['templateID'] is None:
             raise Skip('no task template')
-        return value
+        return cache['templateID']
     raise Skip('no recipe')
 
 
@@ -710,7 +742,10 @@ class Runner:
         self.policy = policy
 
     def run(self, name: str, call: Callable, expected: Optional[List[str]] = None):
-        """Run one check; returns its result, or None if it failed."""
+        """Run one check; returns its result, or None if it failed or was skipped."""
+        if name in KNOWN_SKIPS:
+            self.reporter.skip(name, KNOWN_SKIPS[name])
+            return None
         self.policy.last_keys = None
         try:
             result = call()
@@ -724,8 +759,11 @@ class Runner:
         if expected is not None and isinstance(result, JsonSerializableDict) and self.policy.last_keys is not None:
             missing = tuple(f for f in expected if f not in self.policy.last_keys)
             fields = (len(expected) - len(missing), len(expected), missing)
-        for field, value, _source in unknown_enum_values(result):
-            self.reporter.enum_value(field, value)
+        for field, value, source in unknown_enum_values(result):
+            if source == 'account-defined':
+                self.reporter.account_value(field, value)
+            else:
+                self.reporter.enum_value(field, value)
         self.reporter.ok(name, count=count, fields=fields)
         return result
 
@@ -739,7 +777,7 @@ class Runner:
 
     def check_core(self) -> None:
         connection = self.connection
-        self.run('core.search[a]', lambda: connection.search('a', max_results=3))
+        self.run('core.search[test]', lambda: connection.search('test', max_results=3))
         self.run('core.list_archive', connection.list_archive)
         self.run('core.list_trash', connection.list_trash)
         self.run('core.list_audit_lines', connection.list_audit_lines)
@@ -779,9 +817,15 @@ class Runner:
                 self.reporter.skip(base_name, 'no record')
                 continue
             try:
-                required = {p.name: resolve_argument(cls, method, p.name, instance, cache) for p in method.required}
+                required = {p.name: resolve_argument(cls, method, p.name, instance, cache, self.connection)
+                            for p in method.required}
             except Skip as skip:
                 self.reporter.skip(base_name, skip.reason)
+                continue
+            except (BudgetExceeded, KeyboardInterrupt):
+                raise
+            except Exception as exc:  # noqa: BLE001 - a failed lookup fails the check that needs it
+                self.reporter.fail(base_name, exc)
                 continue
             for label, kwargs in variants(module, method, required):
                 name = base_name + (f'[{label}]' if label else '')

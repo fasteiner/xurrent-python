@@ -395,7 +395,7 @@ def test_full_run_sends_only_capped_gets_and_prints_no_content():
         assert leaked not in text
     # Every domain class was reached
     for name in ("Request.get_requests", "Request.get_by_id", "Request.get_notes[sort=-created_at]",
-                 "Workflow.get_task_by_template_id", "Calendar.get_duration", "core.search[a]",
+                 "Workflow.get_task_by_template_id", "Calendar.get_duration", "core.search[test]",
                  "core.list_audit_lines", "Person.get_me", "UiExtension.get_ui_extensions"):
         assert re.search(rf"^(ok|FAIL|skip) +{re.escape(name)}  ", text, re.MULTILINE), name
 
@@ -404,3 +404,26 @@ def test_missing_credentials_exit_with_2():
     out = io.StringIO()
     assert roc.main([], environ={}, out=out) == 2
     assert "Missing credentials" in out.getvalue()
+
+
+def test_known_skips_are_not_run_and_give_their_reason():
+    reporter, out = make_reporter()
+    runner = roc.Runner(MagicMock(), reporter, make_policy())
+    call = MagicMock()
+    name = "Problem.get_problems[assigned_to_my_teams]"
+    assert name in roc.KNOWN_SKIPS
+    assert runner.run(name, call) is None
+    call.assert_not_called()
+    assert out.getvalue().strip() == f"skip  {name}  ({roc.KNOWN_SKIPS[name]})"
+    assert reporter.exit_code() == 0
+
+
+def test_account_defined_enum_values_are_information_only():
+    from xurrent.projects import Project
+    reporter, _ = make_reporter()
+    runner = roc.Runner(MagicMock(), reporter, make_policy())
+    runner.run("Project.get_projects", lambda: [Project(MagicMock(), id=1, category="strategic")])
+    assert reporter.enum_findings == {}
+    assert reporter.account_values == {("Project.category", "strategic"): 1}
+    assert reporter.exit_code() == 0
+    assert "Project.category = 'strategic'  (1x)" in reporter.summary(1, 1)

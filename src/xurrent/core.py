@@ -484,7 +484,7 @@ class XurrentApiHelper:
     def search(self, query: str, types: list = None, max_results: Optional[int] = None) -> list:
         """
         Perform a cross-resource full-text search.
-        :param query: Search query string
+        :param query: Search query string (at least two characters; the API answers shorter queries with HTTP 400)
         :param types: Optional list of resource types to search (e.g. ['request', 'knowledge-article'])
         :param max_results: Return at most this many results, sorted by relevance (default: None, all results)
         :return: List of search results

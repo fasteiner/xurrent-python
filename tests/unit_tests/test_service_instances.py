@@ -119,14 +119,3 @@ def test_get_cis(mock_connection, si_instance):
     assert all(isinstance(r, ConfigurationItem) for r in results)
 
 
-def test_get_users(mock_connection, si_instance):
-    mock_connection.api_call.return_value = [
-        {"id": 1, "name": "Alice"},
-        {"id": 2, "name": "Bob"},
-    ]
-    results = si_instance.get_users()
-    mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/service_instances/30/users", "GET"
-    )
-    assert len(results) == 2
-    assert all(isinstance(r, Person) for r in results)

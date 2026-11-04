@@ -15,23 +15,17 @@ class RiskPredefinedFilter(str, Enum):
 
 
 class RiskStatus(str, Enum):
-    attrition = "attrition"
-    availability = "availability"
-    budget = "budget"
-    compliance = "compliance"
-    environmental = "environmental"
-    legal = "legal"
-    operational = "operational"
-    program = "program"
-    security = "security"
-    strategic = "strategic"
-    technology = "technology"
+    anticipated = "anticipated"
+    materialized = "materialized"
+    closed = "closed"
 
     def __str__(self):
         return self.value
 
 
 class RiskSeverity(str, Enum):
+    """Risk severities are defined per account (GET /risk_severities); a risk with another severity
+    keeps its reference as text."""
     low = "low"
     medium = "medium"
     high = "high"

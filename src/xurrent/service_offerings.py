@@ -15,9 +15,11 @@ class ServiceOfferingPredefinedFilter(str, Enum):
 
 
 class ServiceOfferingStatus(str, Enum):
-    not_offered = "not_offered"
+    planned = "planned"
+    unpublished = "unpublished"
     available = "available"
     temporarily_unavailable = "temporarily_unavailable"
+    discontinued = "discontinued"
 
     def __str__(self):
         return self.value

@@ -19,6 +19,8 @@ class RequestTemplateCategory(str, Enum):
     rfc = "rfc"
     rfi = "rfi"
     reservation = "reservation"
+    order = "order"
+    fulfillment = "fulfillment"
     complaint = "complaint"
     compliment = "compliment"
     other = "other"

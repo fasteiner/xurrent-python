@@ -132,7 +132,7 @@ class Organization(JsonSerializableDict):
         return [Person.from_data(self._connection_object, p) for p in response]
 
     def get_children(self, queryfilter: dict = None) -> List[T]:
-        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/child_organizations'
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/children'
         if queryfilter:
             uri += '?' + self._connection_object.create_filter_string(queryfilter)
         response = self._connection_object.api_call(uri, 'GET')

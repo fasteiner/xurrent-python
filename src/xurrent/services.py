@@ -130,15 +130,6 @@ class Service(JsonSerializableDict):
     def disable(self, prefix: str = '', postfix: str = '') -> T:
         return self.update({'disabled': True, 'name': f'{prefix}{self.name}{postfix}'})
 
-    def get_workflows(self, queryfilter: dict = None) -> List:
-        """Retrieve workflows for this service instance."""
-        from .workflows import Workflow
-        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/workflows'
-        if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        response = self._connection_object.api_call(uri, 'GET')
-        return [Workflow.from_data(self._connection_object, w) for w in response]
-
     def get_request_templates(self) -> List:
         """Retrieve request templates for this service instance."""
         from .request_templates import RequestTemplate

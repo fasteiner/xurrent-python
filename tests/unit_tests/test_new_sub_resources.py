@@ -116,12 +116,26 @@ def team_instance(mock_connection):
 # -------------------------
 
 def test_request_get_attachments(mock_connection, request_instance):
-    mock_connection.api_call.return_value = [{"id": 1, "filename": "doc.pdf"}]
+    # The API has no /requests/:id/attachments; attachments live on the notes
+    mock_connection.api_call.return_value = [{"id": 1, "name": "doc.pdf", "note": {"id": 5}}]
     result = request_instance.get_attachments()
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/requests/1/attachments", "GET"
+        f"{mock_connection.base_url}/requests/1/note_attachments", "GET"
     )
-    assert result == [{"id": 1, "filename": "doc.pdf"}]
+    assert result == [{"id": 1, "name": "doc.pdf", "note": {"id": 5}}]
+
+
+@pytest.mark.parametrize("cls_path, method", [
+    ("xurrent.requests.Request", "get_satisfaction_feedback"),
+    ("xurrent.problems.Problem", "get_workflows"),
+    ("xurrent.services.Service", "get_workflows"),
+    ("xurrent.service_instances.ServiceInstance", "get_users"),
+])
+def test_methods_without_api_endpoint_are_gone(cls_path, method):
+    # These endpoints do not exist (HTTP 404 in the read-only smoke check, not in the API docs)
+    import importlib
+    module_name, cls_name = cls_path.rsplit(".", 1)
+    assert not hasattr(getattr(importlib.import_module(module_name), cls_name), method)
 
 
 def test_request_get_knowledge_articles(mock_connection, request_instance):
@@ -406,16 +420,6 @@ def test_org_get_time_allocations(mock_connection, org_instance):
 # Service new sub-resources
 # -------------------------
 
-def test_service_get_workflows(mock_connection, service_instance):
-    mock_connection.api_call.return_value = [{"id": 1, "subject": "Wf A"}]
-    results = service_instance.get_workflows()
-    mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/services/6/workflows", "GET"
-    )
-    assert len(results) == 1
-    assert all(isinstance(r, Workflow) for r in results)
-
-
 def test_service_get_service_instances(mock_connection, service_instance):
     from xurrent.service_instances import ServiceInstance
     mock_connection.api_call.return_value = [{"id": 1, "name": "SI A"}]
@@ -467,11 +471,11 @@ def test_calendar_get_duration(mock_connection, calendar_instance):
 
 
 def test_calendar_get_hours(mock_connection, calendar_instance):
-    hours_data = [{"id": 1, "day": "monday", "time_from": "08:00", "time_until": "17:00"}]
+    hours_data = [{"id": 1, "weekday": "mon", "time_from": "08:00", "time_until": "17:00"}]
     mock_connection.api_call.return_value = hours_data
     result = calendar_instance.get_hours()
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/calendars/7/hours", "GET"
+        f"{mock_connection.base_url}/calendars/7/calendar_hours", "GET"
     )
     assert result == hours_data
 
