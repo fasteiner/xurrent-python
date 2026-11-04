@@ -15,7 +15,8 @@ class ContractPredefinedFilter(str, Enum):
 
 
 class ContractStatus(str, Enum):
-    being_created = "being_created"
+    being_prepared = "being_prepared"
+    scheduled_for_activation = "scheduled_for_activation"
     active = "active"
     expired = "expired"
 

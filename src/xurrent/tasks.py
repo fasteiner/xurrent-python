@@ -88,21 +88,42 @@ class Task(JsonSerializableDict):
         return [cls.from_data(connection_object, task) for task in response]
 
     @staticmethod
+    def _reference_id(reference):
+        """
+        ID of a referenced record, whether it is the dict from the API or a model instance.
+
+        >>> Task._reference_id({'id': 5, 'subject': 'Workflow'})
+        5
+        >>> Task._reference_id(Task(None, id=6))
+        6
+        >>> Task._reference_id(None) is None
+        True
+        """
+        if isinstance(reference, JsonSerializableDict):
+            return getattr(reference, 'id', None)
+        if isinstance(reference, dict):
+            return reference.get('id')
+        return getattr(reference, 'id', None)
+
+    @staticmethod
     def get_workflow_of_task(connection_object: XurrentApiHelper, id, expand: bool = False) -> "Workflow":
-        from .workflows import Workflow
         task = Task.get_by_id(connection_object, id)
-        if expand:
-            return Workflow.get_by_id(connection_object, task.workflow.id)
-        return Workflow.from_data(connection_object, task.workflow)
+        return task._workflow(expand)
 
     def get_workflow(self, expand: bool = False) -> "Workflow":
-        from .workflows import Workflow
-        if self.workflow and not expand:
-            return Workflow.from_data(self._connection_object, self.workflow)
-        elif self.workflow and expand:
-            return Workflow.get_by_id(self._connection_object, self.workflow.id)
-        elif not self.workflow:
+        # Model instances are empty dicts (their data are attributes), so test them by type
+        if not (isinstance(self.workflow, JsonSerializableDict) or self.workflow):
             return Task.get_workflow_of_task(self._connection_object, self.id, expand)
+        return self._workflow(expand)
+
+    def _workflow(self, expand: bool) -> "Workflow":
+        """The task's workflow reference as a Workflow; with expand, the full workflow from the API."""
+        from .workflows import Workflow
+        if expand:
+            return Workflow.get_by_id(self._connection_object, Task._reference_id(self.workflow))
+        if isinstance(self.workflow, Workflow):
+            return self.workflow
+        return Workflow.from_data(self._connection_object, self.workflow)
 
 
     @staticmethod

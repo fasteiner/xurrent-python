@@ -16,7 +16,6 @@ class ProjectPredefinedFilter(str, Enum):
 
 
 class ProjectStatus(str, Enum):
-    being_created = "being_created"
     registered = "registered"
     in_progress = "in_progress"
     progress_halted = "progress_halted"
@@ -27,13 +26,11 @@ class ProjectStatus(str, Enum):
 
 
 class ProjectCategory(str, Enum):
-    engineering = "engineering"
-    implementation = "implementation"
-    maintenance = "maintenance"
-    migration = "migration"
-    move = "move"
-    other = "other"
-    release = "release"
+    """References of the project categories of new accounts. Project categories are defined per
+    account (GET /project_categories); a project with another category keeps its reference as text."""
+    small = "small"
+    medium = "medium"
+    large = "large"
 
     def __str__(self):
         return self.value

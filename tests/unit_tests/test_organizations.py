@@ -168,7 +168,7 @@ def test_get_children(mock_connection, org_instance):
     ]
     results = org_instance.get_children()
     mock_connection.api_call.assert_called_once_with(
-        f"{mock_connection.base_url}/organizations/20/child_organizations", "GET"
+        f"{mock_connection.base_url}/organizations/20/children", "GET"
     )
     assert len(results) == 1
     assert isinstance(results[0], Organization)

@@ -15,8 +15,8 @@ class ServiceInstancePredefinedFilter(str, Enum):
 
 
 class ServiceInstanceStatus(str, Enum):
-    being_created = "being_created"
-    active = "active"
+    being_prepared = "being_prepared"
+    in_production = "in_production"
     discontinued = "discontinued"
 
     def __str__(self):
@@ -102,10 +102,3 @@ class ServiceInstance(JsonSerializableDict):
             uri += '?' + self._connection_object.create_filter_string(queryfilter)
         return self._connection_object.api_call(uri, 'GET')
 
-    def get_users(self, queryfilter: dict = None) -> List:
-        from .people import Person
-        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/users'
-        if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        response = self._connection_object.api_call(uri, 'GET')
-        return [Person.from_data(self._connection_object, item) for item in response]

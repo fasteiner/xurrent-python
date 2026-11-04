@@ -96,8 +96,8 @@ class Calendar(JsonSerializableDict):
         return self._connection_object.api_call(uri, 'GET')
 
     def get_hours(self) -> List[dict]:
-        """Retrieve the working hours of the calendar."""
-        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/hours'
+        """Retrieve the calendar hours (weekday, time_from, time_until) of the calendar."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/calendar_hours'
         return self._connection_object.api_call(uri, 'GET')
 
     def get_holidays(self) -> List:

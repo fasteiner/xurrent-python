@@ -16,8 +16,8 @@ class ReleasePredefinedFilter(str, Enum):
 
 
 class ReleaseStatus(str, Enum):
-    being_created = "being_created"
     registered = "registered"
+    # risk_and_impact, approval, implementation: deprecated, replaced by in_progress
     in_progress = "in_progress"
     progress_halted = "progress_halted"
     completed = "completed"
@@ -27,6 +27,7 @@ class ReleaseStatus(str, Enum):
 
 
 class ReleaseImpact(str, Enum):
+    none = "none"
     low = "low"
     medium = "medium"
     high = "high"
