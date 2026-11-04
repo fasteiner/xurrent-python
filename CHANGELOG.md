@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core: added `max_results` to `api_call()` to stop paginating once enough records were fetched (the page size is reduced accordingly).
 - Core/Requests/Tasks/Problems/KnowledgeArticles: added `max_results` to `search()`, `get_requests()`, `get_tasks()`, `get_problems()`, and `get_knowledge_articles()`.
 - Requests/Tasks/Problems/ProjectTasks/Workflows/Projects/Releases: added `sort` (the API's `?sort=` parameter, e.g. `-created_at`) and `max_results` to `get_notes()`, so `get_notes(sort='-created_at', max_results=1)` reads only the newest note, in one call with `per_page=1`; without them `get_notes()` behaves as before.
+- Tests: read-only smoke check against a real account (`tests/smoke/read_only_check.py`): calls every list function with each predefined filter, `get_by_id` and every reading sub-resource of every domain class (derived from the code), plus `get_me`, `search`, `list_archive`, `list_trash` and `list_audit_lines`, and reports unknown enum values and expected fields missing in responses. Only GET requests can be sent (refused in `api_call` and again in the transport), with `per_page`/`max_results` capped at 3, one page per call, a timeout and a request/time budget; the output contains only check names, statuses, exception types, HTTP status codes and counts, never record contents, IDs or error messages.
 
 ### Changed
 

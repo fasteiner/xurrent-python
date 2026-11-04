@@ -36,6 +36,10 @@ pytest ./src/ --doctest-modules -v
 
 # Integration tests (requires env vars: APITOKEN, APIACCOUNT, APIURL)
 pytest ./tests/integration
+
+# Read-only smoke check against a real account (GET only; APITOKEN/APIACCOUNT/APIURL
+# or XURRENT_CLIENT_ID/XURRENT_CLIENT_SECRET/XURRENT_ACCOUNT/XURRENT_API_URL)
+python tests/smoke/read_only_check.py
 ```
 
 Integration tests require a `.env` file or environment variables: `APITOKEN`, `APIACCOUNT`, `APIURL`.
