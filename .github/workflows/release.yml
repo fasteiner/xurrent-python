@@ -56,34 +56,6 @@ jobs:
             echo "python_changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set Version Bump Type from GitVersion
-        id: version-bump
-        if: github.ref == 'refs/heads/main'
-        run: |
-          VERSION_INCREMENT="${{ steps.gitversion.outputs.MajorMinorPatch }}"
-          TAG="${{ steps.gitversion.outputs.PreReleaseLabel }}"
-
-          BUMP_TYPE="patch"
-
-          if [[ "${{ env.python_changed }}" == "true" ]]; then
-            if [[ "$VERSION_INCREMENT" =~ ^[1-9][0-9]*\.0\.0$ ]]; then
-              BUMP_TYPE="major"
-            elif [[ "$VERSION_INCREMENT" =~ ^[0-9]+\.[1-9][0-9]*\.0$ ]]; then
-              BUMP_TYPE="minor"
-            elif [[ "$VERSION_INCREMENT" =~ ^[0-9]+\.[0-9]+\.[1-9][0-9]*$ ]]; then
-              BUMP_TYPE="patch"
-            fi
-
-            if [[ -n "$TAG" ]]; then
-              BUMP_TYPE="pre${BUMP_TYPE}"
-            fi
-          else
-            echo "No Python files changed → forcing patch bump."
-          fi
-
-          echo "Version bump detected: $BUMP_TYPE"
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_ENV
-
       - name: Determine Effective Version
         id: effective-version
         run: |
@@ -108,10 +80,9 @@ jobs:
 
       - name: Update CHANGELOG.md
         if: github.ref == 'refs/heads/main'
-        uses: release-flow/keep-a-changelog-action@v3.0.0
-        with:
-          command: bump
-          version: ${{ env.bump_type }}
+        # [Unreleased] becomes the version GitVersion calculated (keep-a-changelog-action's bump could only
+        # count up from the last version in the changelog, e.g. 0.11.0 -> 0.12.0 instead of 0.14.0)
+        run: python3 .github/scripts/release_changelog.py CHANGELOG.md "${{ steps.effective-version.outputs.effective_version }}" "${{ github.server_url }}/${{ github.repository }}"
 
       - name: Commit Updated CHANGELOG.md
         if: github.ref == 'refs/heads/main'

@@ -86,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Projects/Releases/Problems: removed enum values the API does not have: `ProjectStatus.being_created`, `ReleaseStatus.being_created`, `ProblemStatus.registered`.
 - Projects/Risks: `ProjectCategory` lists the default references `small`, `medium`, `large` instead of values the API does not use; project categories and risk severities are defined per account, so other references are kept as text (documented on `ProjectCategory` and `RiskSeverity`).
 - Core: the `search()` docstring says that queries need at least two characters (the API answers shorter ones with HTTP 400).
+- CI: on `main`, `release.yml` now writes the version GitVersion calculated into `CHANGELOG.md` (`.github/scripts/release_changelog.py`, with unit tests). `keep-a-changelog-action`'s `bump` could only count up from the last version in the changelog, so the 0.14.0 release would have got a `[0.12.0]` section (0.11.0 + minor); it also rewrote the Markdown (e.g. escaped underscores), the script changes only the `[Unreleased]` heading and adds the compare link. Removed the now unused step that derived the bump type.
 
 ### Removed
 
