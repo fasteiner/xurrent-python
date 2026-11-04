@@ -38,6 +38,7 @@ class TaskStatus(str, Enum):
 
 
 class Task(JsonSerializableDict):
+    """A task of a workflow (change), e.g. an approval or an implementation activity."""
     #https://developer.xurrent.com/v1/tasks/
     __resourceUrl__ = 'tasks'
 

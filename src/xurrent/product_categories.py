@@ -19,6 +19,10 @@ class ProductCategoryRuleSet(str, Enum):
 
 
 class ProductCategory(JsonSerializableDict):
+    """
+    A product category that groups products and sets their rule set (e.g. physical asset or
+    software).
+    """
     # https://developer.xurrent.com/v1/product_categories/
     __resourceUrl__ = 'product_categories'
 

@@ -50,6 +50,7 @@ class ProblemImpact(str, Enum):
 
 
 class Problem(JsonSerializableDict):
+    """A problem: the unknown or known cause of one or more incidents, with the requests linked to it."""
     # https://developer.xurrent.com/v1/problems/
     __resourceUrl__ = 'problems'
 

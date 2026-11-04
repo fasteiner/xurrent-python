@@ -15,6 +15,10 @@ class CalendarPredefinedFilter(str, Enum):
 
 
 class Calendar(JsonSerializableDict):
+    """
+    Business hours (calendar hours per weekday) and holidays that define when service hours, support
+    hours and SLA clocks run.
+    """
     # https://developer.xurrent.com/v1/calendars/
     __resourceUrl__ = 'calendars'
 

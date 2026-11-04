@@ -15,6 +15,7 @@ class ServicePredefinedFilter(str, Enum):
 
 
 class Service(JsonSerializableDict):
+    """A service of a provider, with its service instances, offerings, request templates and SLAs."""
     # https://developer.xurrent.com/v1/services/
     __resourceUrl__ = 'services'
 

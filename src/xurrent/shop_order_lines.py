@@ -36,6 +36,7 @@ class ShopOrderLineRecurringPeriod(str, Enum):
 
 
 class ShopOrderLine(JsonSerializableDict):
+    """A line of a shop order: one ordered shop article with its quantity and fulfillment."""
     # https://developer.xurrent.com/v1/shop_order_lines/
     __resourceUrl__ = 'shop_order_lines'
 

@@ -82,6 +82,7 @@ T = TypeVar("T", bound="Request")  # Define the type variable
 
 
 class Request(JsonSerializableDict):
+    """A request (incident, RFC, RFI, order, ...) with its notes and linked configuration items."""
     #https://developer.xurrent.com/v1/requests/
     __resourceUrl__ = 'requests'
     __references__ = ['workflow', 'requested_by', 'requested_for', 'created_by', 'member', 'team']

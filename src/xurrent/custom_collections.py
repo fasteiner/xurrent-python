@@ -15,6 +15,10 @@ class CustomCollectionPredefinedFilter(str, Enum):
 
 
 class CustomCollection(JsonSerializableDict):
+    """
+    A custom collection: an account-defined list whose elements can be selected in UI extension
+    fields.
+    """
     # https://developer.xurrent.com/v1/custom_collections/
     __resourceUrl__ = 'custom_collections'
 

@@ -15,6 +15,7 @@ class EffortClassPredefinedFilter(str, Enum):
 
 
 class EffortClass(JsonSerializableDict):
+    """An effort class: a kind of work (e.g. normal hours or overtime) used to classify time spent."""
     # https://developer.xurrent.com/v1/effort_classes/
     __resourceUrl__ = 'effort_classes'
 

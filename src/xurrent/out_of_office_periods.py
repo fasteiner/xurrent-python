@@ -15,6 +15,7 @@ class OutOfOfficePeriodPredefinedFilter(str, Enum):
 
 
 class OutOfOfficePeriod(JsonSerializableDict):
+    """A period in which a person is out of office, optionally with an approval delegate."""
     # https://developer.xurrent.com/v1/out_of_office_periods/
     __resourceUrl__ = 'out_of_office_periods'
 

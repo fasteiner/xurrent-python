@@ -54,6 +54,7 @@ class RequestTemplateImpact(str, Enum):
 
 
 class RequestTemplate(JsonSerializableDict):
+    """A request template (standard request) that prefills requests for a service."""
     # https://developer.xurrent.com/v1/request_templates/
     __resourceUrl__ = 'request_templates'
 

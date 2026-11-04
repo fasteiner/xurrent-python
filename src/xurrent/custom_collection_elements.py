@@ -15,6 +15,7 @@ class CustomCollectionElementPredefinedFilter(str, Enum):
 
 
 class CustomCollectionElement(JsonSerializableDict):
+    """An element (selectable value) of a custom collection."""
     # https://developer.xurrent.com/v1/custom_collection_elements/
     __resourceUrl__ = 'custom_collection_elements'
 

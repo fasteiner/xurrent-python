@@ -21,6 +21,7 @@ class OrganizationPredefinedFilter(str, Enum):
 
 
 class Organization(JsonSerializableDict):
+    """An organization (internal department, customer or supplier) with its people, contracts and SLAs."""
     # https://developer.xurrent.com/v1/organizations/
     __resourceUrl__ = 'organizations'
 

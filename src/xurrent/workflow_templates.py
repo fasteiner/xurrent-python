@@ -25,6 +25,7 @@ class WorkflowTemplateCategory(str, Enum):
 
 
 class WorkflowTemplate(JsonSerializableDict):
+    """A workflow template from which workflows (changes) are created."""
     # https://developer.xurrent.com/v1/workflow_templates/
     __resourceUrl__ = 'workflow_templates'
 

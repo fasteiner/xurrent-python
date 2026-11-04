@@ -15,6 +15,10 @@ class ConfigurationItemPredefinedFilter(str, Enum):
         return format(self.value, format_spec)
 
 class ConfigurationItem(JsonSerializableDict):
+    """
+    A configuration item (CI): hardware, software or another asset registered in the CMDB, based on
+    a product.
+    """
     # https://developer.xurrent.com/v1/configuration_items/
     __resourceUrl__ = 'cis'
 

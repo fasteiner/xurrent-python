@@ -27,6 +27,7 @@ class ProductDepreciationMethod(str, Enum):
 
 
 class Product(JsonSerializableDict):
+    """A product (model or type) from which configuration items are created."""
     # https://developer.xurrent.com/v1/products/
     __resourceUrl__ = 'products'
 

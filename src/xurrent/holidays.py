@@ -6,6 +6,7 @@ T = TypeVar('T', bound='Holiday')
 
 
 class Holiday(JsonSerializableDict):
+    """A holiday: a period during which the calendars it is linked to are not active."""
     # https://developer.xurrent.com/v1/holidays/
     __resourceUrl__ = 'holidays'
 

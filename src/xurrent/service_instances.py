@@ -24,6 +24,7 @@ class ServiceInstanceStatus(str, Enum):
 
 
 class ServiceInstance(JsonSerializableDict):
+    """A service instance: one installation of a service, with its configuration items and SLAs."""
     # https://developer.xurrent.com/v1/service_instances/
     __resourceUrl__ = 'service_instances'
 

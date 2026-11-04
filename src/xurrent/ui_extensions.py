@@ -35,6 +35,7 @@ class UiExtensionCategory(str, Enum):
 
 
 class UiExtension(JsonSerializableDict):
+    """A UI extension: custom fields and form logic for records of one category."""
     # https://developer.xurrent.com/v1/ui_extensions/
     __resourceUrl__ = 'ui_extensions'
 

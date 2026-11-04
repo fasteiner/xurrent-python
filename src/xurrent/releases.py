@@ -38,6 +38,7 @@ class ReleaseImpact(str, Enum):
 
 
 class Release(JsonSerializableDict):
+    """A release that bundles workflows (changes) to be implemented together."""
     # https://developer.xurrent.com/v1/releases/
     __resourceUrl__ = 'releases'
 

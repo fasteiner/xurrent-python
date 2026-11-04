@@ -6,6 +6,7 @@ T = TypeVar('T', bound='ClosureCode')
 
 
 class ClosureCode(JsonSerializableDict):
+    """A closure code that classifies how a request was resolved."""
     # https://developer.xurrent.com/v1/closure_codes/
     __resourceUrl__ = 'closure_codes'
 
