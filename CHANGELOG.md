@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Docs: API reference generated from the source code in `docs/api/`: a page per class with its fields, enums, methods (signature, description and the API endpoint each one calls) and cross references in both directions, plus an overview of all classes and enums; `python docs/generate_api_docs.py` regenerates it (`--check` verifies it, `--wiki DIR` writes the same pages for the GitHub wiki, with absolute links because GitHub serves the wiki home page at `/wiki` without a trailing slash) and a unit test fails while it is out of date. The README links to it with a table of all classes.
-- Docs: one-line docstrings for all domain classes and `XurrentApiHelper` (shown by `help()`, IDEs and the API reference).
+- Docs: API reference with a page per class: its fields, enums, methods with the API endpoint each one calls, and cross references between the classes. It is in [`docs/api/`](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/README.md) and in the [wiki](https://github.com/fasteiner/xurrent-python/wiki), and the README links to every class.
+- Docs: `python docs/generate_api_docs.py` generates the reference from the source code (`--check` only verifies it, `--wiki DIR` writes the wiki pages); a unit test fails when `docs/api/` is out of date.
+- Docs: every domain class and `XurrentApiHelper` has a one-line docstring, shown by `help()` and in IDEs.
 
 ### Fixed
 
-- Docs: README examples that did not work: `Request.get_requests()` (was `get_request`), `Task.get_tasks()` (was `get_task`), `Team.get_teams(predefinedFilter=...)` (was `get_team(predifinedFilter=...)`), `request.get_note_by_id()` and `request.get_notes(predefinedFilter=...)` without the helper argument, `Task.get_workflow_of_task()` (was the non-existent `get_workflow_by_template_id`), `from xurrent.requests` (was `src.xurrent.requests`), `bulk_export()` returns bytes (decoded before parsing the CSV), the configuration item example without the non-existent `type` field, and the People example calling `enable()` on a list.
+- Docs: README examples that did not work: `Request.get_requests()`, `Task.get_tasks()` and `Team.get_teams(predefinedFilter=...)` were misspelled, `request.get_notes()` and `request.get_note_by_id()` were called with the helper as an extra argument, `Task.get_workflow_of_task()` replaces the non-existent `get_workflow_by_template_id()`, imports use `xurrent` instead of `src.xurrent`, the `bulk_export()` example decodes the returned bytes, and the configuration item and people examples no longer use a non-existent `type` field or call `enable()` on a list.
 
 ## [0.14.0] - 2026-11-04
 
