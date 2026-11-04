@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='TimeAllocation')
@@ -61,9 +61,9 @@ class TimeAllocation(JsonSerializableDict):
         self.name = name
         self.group = group
         self.disabled = disabled
-        self.customer_category = TimeAllocationCustomerCategory(customer_category) if customer_category else None
-        self.service_category = TimeAllocationServiceCategory(service_category) if service_category else None
-        self.description_category = TimeAllocationDescriptionCategory(description_category) if description_category else None
+        self.customer_category = enum_or_raw(TimeAllocationCustomerCategory, customer_category) if customer_category else None
+        self.service_category = enum_or_raw(TimeAllocationServiceCategory, service_category) if service_category else None
+        self.description_category = enum_or_raw(TimeAllocationDescriptionCategory, description_category) if description_category else None
 
         from .effort_classes import EffortClass
         self.effort_class = (effort_class if isinstance(effort_class, EffortClass)

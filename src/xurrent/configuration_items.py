@@ -10,6 +10,10 @@ class ConfigurationItemPredefinedFilter(str, Enum):
     inactive = "inactive"  # List all inactive configuration items
     supported_by_my_teams = "supported_by_my_teams"  # List all configuration items supported by the teams of the API user
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 class ConfigurationItem(JsonSerializableDict):
     # https://developer.xurrent.com/v1/configuration_items/
     __resourceUrl__ = 'cis'

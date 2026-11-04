@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='ServiceOffering')
@@ -37,7 +37,7 @@ class ServiceOffering(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.name = name
-        self.status = ServiceOfferingStatus(status) if isinstance(status, str) else status
+        self.status = enum_or_raw(ServiceOfferingStatus, status)
 
         from .services import Service
         self.service = (service if isinstance(service, Service)

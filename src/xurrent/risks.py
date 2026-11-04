@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='Risk')
@@ -56,8 +56,8 @@ class Risk(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = RiskStatus(status) if isinstance(status, str) else status
-        self.severity = RiskSeverity(severity) if isinstance(severity, str) else severity
+        self.status = enum_or_raw(RiskStatus, status)
+        self.severity = enum_or_raw(RiskSeverity, severity)
 
         from .people import Person
         self.manager = (manager if isinstance(manager, Person)

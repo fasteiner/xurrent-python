@@ -14,6 +14,10 @@ class PeoplePredefinedFilter(str, Enum):
     directory = "directory"  # List all people registered in the directory account of the support domain account from which the data is requested
     support_domain = "support_domain"  # List all people registered in the account from which the data is requested (and not the related directory account)
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 
 
 T = TypeVar('T', bound='Person')

@@ -73,7 +73,8 @@ def test_client_credentials_fetches_token(monkeypatch, mock_token_response):
     assert result == {"result": "ok"}
     assert post_calls == [
         (
-            "https://oauth.xurrent.com/token",
+            # the token endpoint is derived from base_url (api.example.com -> oauth.example.com)
+            "https://oauth.example.com/token",
             {
                 "client_id": "cid",
                 "client_secret": "secret",

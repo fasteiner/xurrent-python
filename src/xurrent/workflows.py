@@ -1,7 +1,7 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
 from typing import Optional, List, Dict, TYPE_CHECKING
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes, enum_or_raw
 from enum import Enum
 
 if TYPE_CHECKING:
@@ -50,6 +50,10 @@ class WorkflowPredefinedFilter(str, Enum):
     completed = 'completed' #/workflows/open: List all open workflows
     managed_by_me = 'managed_by_me' #/workflows/managed_by_me: List all workflows which manager is the API user
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 
 class Workflow(JsonSerializableDict):
     # https://developer.xurrent.com/v1/workflows/
@@ -66,8 +70,8 @@ class Workflow(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = WorkflowStatus(status) if status else None
-        self.category = WorkflowCategory(category) if category else None
+        self.status = enum_or_raw(WorkflowStatus, status) if status else None
+        self.category = enum_or_raw(WorkflowCategory, category) if category else None
         from .people import Person
         self.manager =  manager if isinstance(manager, Person) else Person.from_data(connection_object, manager) if manager else None
         for key, value in kwargs.items():
@@ -227,12 +231,17 @@ class Workflow(JsonSerializableDict):
         response = self._connection_object.api_call(uri, 'POST')
         return Workflow.from_data(self._connection_object,response)
 
-    def get_notes(self, queryfilter: dict = None) -> List[dict]:
-        """Retrieve all notes associated with the current workflow instance."""
+    def get_notes(self, queryfilter: dict = None, sort: Optional[str] = None,
+                  max_results: Optional[int] = None) -> List[dict]:
+        """
+        Retrieve the notes of the current workflow.
+        :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+        :param sort: Optional order, e.g. '-created_at' for the newest note first (default: ascending by id)
+        :param max_results: Return at most this many notes, fetching only the pages needed (default: all)
+        :return: List of notes
+        """
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
-        if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        return self._connection_object.api_call(uri, 'GET')
+        return list_notes(self._connection_object, uri, queryfilter, sort, max_results)
 
     def add_note(self, note) -> dict:
         """Add a note to the current workflow instance."""

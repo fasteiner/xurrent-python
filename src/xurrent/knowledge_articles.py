@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='KnowledgeArticle')
@@ -16,8 +16,10 @@ class KnowledgeArticlePredefinedFilter(str, Enum):
 
 
 class KnowledgeArticleStatus(str, Enum):
+    work_in_progress = "work_in_progress"
     not_validated = "not_validated"
     validated = "validated"
+    archived = "archived"
 
     def __str__(self):
         return self.value
@@ -36,7 +38,7 @@ class KnowledgeArticle(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = KnowledgeArticleStatus(status) if isinstance(status, str) else status
+        self.status = enum_or_raw(KnowledgeArticleStatus, status)
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -63,13 +65,17 @@ class KnowledgeArticle(JsonSerializableDict):
     @classmethod
     def get_knowledge_articles(cls, connection_object: XurrentApiHelper,
                                predefinedFilter: KnowledgeArticlePredefinedFilter = None,
-                               queryfilter: dict = None) -> List[T]:
+                               queryfilter: dict = None,
+                               max_results: Optional[int] = None) -> List[T]:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
-        response = connection_object.api_call(uri, 'GET')
+        if max_results:
+            response = connection_object.api_call(uri, 'GET', max_results=max_results)
+        else:
+            response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, item) for item in response]
 
     def update(self, data: dict) -> T:

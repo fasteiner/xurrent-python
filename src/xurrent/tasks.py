@@ -1,5 +1,5 @@
 from __future__ import annotations
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes
 from enum import Enum
 from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
 
@@ -16,6 +16,10 @@ class TaskPredefinedFilter(str, Enum):
     assigned_to_my_team = "assigned_to_my_team"  # List all tasks that are assigned to one of the teams that the API user is a member of
     assigned_to_me = "assigned_to_me"  # List all tasks that are assigned to the API user
     approval_by_me = "approval_by_me"  # List all approval tasks that are assigned to the API user and which status is different from ‘Registered’
+
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
 
 class TaskStatus(str, Enum):
     registered = "registered"  # Registered
@@ -71,13 +75,16 @@ class Task(JsonSerializableDict):
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
-    def get_tasks(cls, connection_object: XurrentApiHelper, predefinedFilter: TaskPredefinedFilter = None, queryfilter: dict = None) -> List[T]:
+    def get_tasks(cls, connection_object: XurrentApiHelper, predefinedFilter: TaskPredefinedFilter = None, queryfilter: dict = None, max_results: Optional[int] = None) -> List[T]:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
             uri += '?' + connection_object.create_filter_string(queryfilter)
-        response = connection_object.api_call(uri, 'GET')
+        if max_results:
+            response = connection_object.api_call(uri, 'GET', max_results=max_results)
+        else:
+            response = connection_object.api_call(uri, 'GET')
         return [cls.from_data(connection_object, task) for task in response]
 
     @staticmethod
@@ -179,12 +186,17 @@ class Task(JsonSerializableDict):
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
 
-    def get_notes(self, queryfilter: dict = None) -> List[dict]:
-        """Retrieve all notes associated with the current task instance."""
+    def get_notes(self, queryfilter: dict = None, sort: Optional[str] = None,
+                  max_results: Optional[int] = None) -> List[dict]:
+        """
+        Retrieve the notes of the current task.
+        :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+        :param sort: Optional order, e.g. '-created_at' for the newest note first (default: ascending by id)
+        :param max_results: Return at most this many notes, fetching only the pages needed (default: all)
+        :return: List of notes
+        """
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
-        if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        return self._connection_object.api_call(uri, 'GET')
+        return list_notes(self._connection_object, uri, queryfilter, sort, max_results)
 
     def add_note(self, note) -> dict:
         """Add a note to the current task instance."""
