@@ -1,8 +1,11 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
-from typing import Optional, List, Dict
-from .core import XurrentApiHelper, JsonSerializableDict
+from typing import Optional, List, Dict, TYPE_CHECKING
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes, enum_or_raw
 from enum import Enum
+
+if TYPE_CHECKING:
+    from .tasks import Task
 
 class WorkflowCompletionReason(str, Enum):
     withdrawn = "withdrawn"  # Withdrawn - Withdrawn by Requester
@@ -47,6 +50,10 @@ class WorkflowPredefinedFilter(str, Enum):
     completed = 'completed' #/workflows/open: List all open workflows
     managed_by_me = 'managed_by_me' #/workflows/managed_by_me: List all workflows which manager is the API user
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 
 class Workflow(JsonSerializableDict):
     # https://developer.xurrent.com/v1/workflows/
@@ -63,8 +70,8 @@ class Workflow(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = WorkflowStatus(status) if status else None
-        self.category = WorkflowCategory(category) if category else None
+        self.status = enum_or_raw(WorkflowStatus, status) if status else None
+        self.category = enum_or_raw(WorkflowCategory, category) if category else None
         from .people import Person
         self.manager =  manager if isinstance(manager, Person) else Person.from_data(connection_object, manager) if manager else None
         for key, value in kwargs.items():
@@ -95,7 +102,7 @@ class Workflow(JsonSerializableDict):
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
-    def get_workflows(cls, connection_object: XurrentApiHelper, predefinedFilter: WorkflowPredefinedFilter = None, queryfilter: dict = None) -> List[Workflow]:
+    def get_workflows(cls, connection_object: XurrentApiHelper, predefinedFilter: WorkflowPredefinedFilter = None, queryfilter: dict = None) -> List["Workflow"]:
         """
         Retrieve all workflows.
         """
@@ -108,14 +115,14 @@ class Workflow(JsonSerializableDict):
         return [cls.from_data(connection_object, workflow) for workflow in response]
 
     @classmethod
-    def get_workflow_tasks_by_workflow_id(cls, connection_object: XurrentApiHelper, id: int, queryfilter: dict = None) -> List[Task]:
+    def get_workflow_tasks_by_workflow_id(cls, connection_object: XurrentApiHelper, id: int, queryfilter: dict = None) -> List["Task"]:
         """
         Retrieve all tasks associated with a workflow by its ID.
         """
         workflow = Workflow(connection_object, id)
         return workflow.get_tasks(queryfilter=queryfilter)
 
-    def get_tasks(self, queryfilter: dict = None) -> List[Task]:
+    def get_tasks(self, queryfilter: dict = None) -> List["Task"]:
         """
         Retrieve all tasks associated with the current workflow instance.
         """
@@ -127,14 +134,14 @@ class Workflow(JsonSerializableDict):
         return [Task.from_data(self._connection_object, task) for task in response]
 
     @classmethod
-    def get_workflow_task_by_template_id(cls, connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> List[Task]:
+    def get_workflow_task_by_template_id(cls, connection_object: XurrentApiHelper, workflowID: int, templateID: int) -> List["Task"]:
         """
         Retrieve a specific task associated with a workflow by template ID.
         """
         workflow = Workflow(connection_object, workflowID)
         return workflow.get_task_by_template_id(templateID)
     
-    def get_task_by_template_id(self, templateID: int) -> List[Task]:
+    def get_task_by_template_id(self, templateID: int) -> List["Task"]:
         """
         Retrieve a specific task associated with the current workflow by template ID.
         """
@@ -224,3 +231,48 @@ class Workflow(JsonSerializableDict):
         response = self._connection_object.api_call(uri, 'POST')
         return Workflow.from_data(self._connection_object,response)
 
+    def get_notes(self, queryfilter: dict = None, sort: Optional[str] = None,
+                  max_results: Optional[int] = None) -> List[dict]:
+        """
+        Retrieve the notes of the current workflow.
+        :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+        :param sort: Optional order, e.g. '-created_at' for the newest note first (default: ascending by id)
+        :param max_results: Return at most this many notes, fetching only the pages needed (default: all)
+        :return: List of notes
+        """
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        return list_notes(self._connection_object, uri, queryfilter, sort, max_results)
+
+    def add_note(self, note) -> dict:
+        """Add a note to the current workflow instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        if isinstance(note, dict):
+            return self._connection_object.api_call(uri, 'POST', note)
+        elif isinstance(note, str):
+            return self._connection_object.api_call(uri, 'POST', {'text': note})
+        else:
+            raise TypeError(f"Expected 'note' to be a str or dict, got {type(note).__name__}")
+
+    def get_automation_rules(self) -> List[dict]:
+        """Retrieve automation rules associated with the current workflow instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/automation_rules'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_phases(self) -> List[dict]:
+        """Retrieve phases of the current workflow instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/phases'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_requests(self) -> List:
+        """Retrieve requests associated with the current workflow instance."""
+        from .requests import Request
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/requests'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Request.from_data(self._connection_object, r) for r in response]
+
+    def get_problems(self) -> List:
+        """Retrieve problems associated with the current workflow instance."""
+        from .problems import Problem
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/problems'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Problem.from_data(self._connection_object, p) for p in response]

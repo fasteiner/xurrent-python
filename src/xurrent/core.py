@@ -7,8 +7,37 @@ import logging
 import json
 import re
 import base64
+from urllib.parse import quote, urlencode
 from logging import Logger
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .people import Person
+    from .teams import Team
+
+
+def enum_or_raw(enum_cls, value):
+    """``value`` as a member of ``enum_cls`` when it is one of its values; any other string
+    as it came (Xurrent adds categories and statuses over time, e.g. a newer request
+    category, and a record must not fail to load because of it); None and non-strings as
+    they are.
+
+    >>> class Colour(str, Enum):
+    ...     red = "red"
+    >>> enum_or_raw(Colour, "red") is Colour.red
+    True
+    >>> enum_or_raw(Colour, "violet")
+    'violet'
+    >>> enum_or_raw(Colour, None) is None
+    True
+    """
+    if not isinstance(value, str):
+        return value
+    try:
+        return enum_cls(value)
+    except ValueError:
+        return value
+
 
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
@@ -43,10 +72,33 @@ class JsonSerializableDict(dict):
         return json.dumps(self.to_dict())
 
 
+def list_notes(connection_object: XurrentApiHelper, uri: str, queryfilter: dict = None,
+               sort: Optional[str] = None, max_results: Optional[int] = None) -> List[dict]:
+    """
+    List the notes collection at uri; shared by the get_notes() methods of all record types.
+    :param connection_object: XurrentApiHelper instance
+    :param uri: URI of the notes collection, e.g. f'{base_url}/requests/5/notes'
+    :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+    :param sort: Optional value of the ?sort= parameter: id, person_id or created_at, comma-separated,
+                 a leading minus sorts descending (e.g. '-created_at' for the newest note first).
+                 Default: the order of the API (ascending by id).
+    :param max_results: Return at most this many notes and fetch only the pages needed for them
+                        (e.g. max_results=1: one call with per_page=1). Default: all notes.
+    :return: List of notes
+    """
+    if queryfilter:
+        uri += '?' + connection_object.create_filter_string(queryfilter)
+    if sort:
+        uri += ('&' if '?' in uri else '?') + f"sort={quote(sort, safe=',')}"
+    if max_results:
+        return connection_object.api_call(uri, 'GET', max_results=max_results)
+    return connection_object.api_call(uri, 'GET')
+
+
 
 class XurrentApiHelper:
-    api_user: Person # Forward declaration with a string
-    api_user_teams: List[Team] # Forward declaration with a string
+    api_user: "Person"
+    api_user_teams: List["Team"]
 
     def __init__(
         self,
@@ -56,7 +108,8 @@ class XurrentApiHelper:
         resolve_user=True,
         logger: Logger=None,
         client_id: Optional[str]=None,
-        client_secret: Optional[str]=None
+        client_secret: Optional[str]=None,
+        timeout: Optional[float]=None
     ):
         """
         Initialize the Xurrent API helper.
@@ -68,8 +121,10 @@ class XurrentApiHelper:
         :param client_secret: OAuth client secret to use when fetching an access token
         :param resolve_user: Resolve the API user and their teams (default: True)
         :param logger: Logger to use (optional), otherwise a new logger is created
+        :param timeout: Seconds to wait for each HTTP request (default: None, wait without limit)
         """
         self.base_url = base_url
+        self.timeout = timeout
         self.api_account = api_account
         self._client_id = client_id
         self._client_secret = client_secret
@@ -142,7 +197,7 @@ class XurrentApiHelper:
         }
 
         try:
-            response = requests.post(token_url, data=payload)
+            response = requests.post(token_url, data=payload, **self._timeout_kwargs())
             response.raise_for_status()
         except requests.exceptions.RequestException as exc:
             self.logger.error(f'Failed to obtain OAuth access token: {exc}')
@@ -234,7 +289,7 @@ class XurrentApiHelper:
             handler.setLevel(log_level)
 
 
-    def api_call(self, uri: str, method='GET', data=None, per_page=100, raw=False):
+    def api_call(self, uri: str, method='GET', data=None, per_page=100, raw=False, max_results: Optional[int] = None):
         """
         Make a call to the Xurrent API with support for rate limiting and pagination.
         Automatically handles 401 responses by refreshing the OAuth token if client_id and client_secret are provided.
@@ -243,11 +298,17 @@ class XurrentApiHelper:
         :param data: Data to send with the request (optional)
         :param per_page: Number of records per page for GET requests, setting to 0/None disables pagination (default: 100)
         :param raw: Do not process the request result, e.g. in the case of non-JSON data (default: False)
+        :param max_results: Stop paginating once this many records were fetched and return at most this many (default: None, fetch all pages)
         :return: JSON response from the API or aggregated data for paginated GET
         """
+        if max_results is not None and max_results < 1:
+            raise ValueError('max_results must be a positive number.')
         # Ensure the base URL is included in the URI, if no protocol (https://) specified
         if not uri.startswith(self.base_url) and "://" not in uri[:10]:
             uri = f'{self.base_url}{uri}'
+        # Do not fetch large pages when only a few records are needed
+        if max_results and per_page:
+            per_page = min(per_page, max_results)
 
         def do_request():
             self._ensure_access_token()
@@ -256,6 +317,7 @@ class XurrentApiHelper:
                 'x-xurrent-account': self.api_account
             }
             aggregated_data = []
+            seen_records = set()
             next_page_url = uri
             while next_page_url:
                 try:
@@ -268,9 +330,9 @@ class XurrentApiHelper:
                     
                     # Make the HTTP request - use session if available, otherwise direct request
                     if hasattr(self, '__session'):
-                        response = self.__session.request(method, next_page_url, json=data)
+                        response = self.__session.request(method, next_page_url, json=data, **self._timeout_kwargs())
                     else:
-                        response = requests.request(method, next_page_url, headers=headers, json=data)
+                        response = requests.request(method, next_page_url, headers=headers, json=data, **self._timeout_kwargs())
                     
                     if response.status_code == 204:
                         return None
@@ -300,8 +362,17 @@ class XurrentApiHelper:
                     
                     # For GET requests, handle pagination
                     if method == 'GET' and isinstance(response_data, list):
+                        # A follow-up page that only repeats records we already have ends the pagination
+                        # (the /search endpoint keeps sending a 'next' link with the same results)
+                        record_keys = [self._record_key(item) for item in response_data]
+                        if aggregated_data and record_keys and all(key is not None and key in seen_records for key in record_keys):
+                            self.logger.debug('Page only repeats already fetched records, stopping pagination.')
+                            break
+                        seen_records.update(key for key in record_keys if key is not None)
                         aggregated_data.extend(response_data)
-                        
+                        if max_results and len(aggregated_data) >= max_results:
+                            return aggregated_data[:max_results]
+
                         # Parse the 'Link' header to find the 'next' page URL
                         link_header = response.headers.get('Link')
                         if link_header:
@@ -329,6 +400,28 @@ class XurrentApiHelper:
                 self.logger.error('Still receiving 401 Unauthorized after token refresh, authentication failed')
                 raise requests.exceptions.HTTPError('Authentication failed: 401 Unauthorized received even after token refresh')
         return result
+
+    def _timeout_kwargs(self) -> dict:
+        """Keyword arguments for requests; empty when no timeout is set (unchanged behaviour)."""
+        timeout = getattr(self, 'timeout', None)
+        return {'timeout': timeout} if timeout else {}
+
+    @staticmethod
+    def _record_key(item):
+        """
+        Identity of a record in a list response, used to detect repeated pages.
+        :param item: Record from a list response
+        :return: Tuple of type and id, or None if the record has no id
+        >>> XurrentApiHelper._record_key({'id': 5, 'type': 'request'})
+        ('request', '5')
+        >>> XurrentApiHelper._record_key({'id': 5})
+        ('None', '5')
+        >>> XurrentApiHelper._record_key({'name': 'no id'}) is None
+        True
+        """
+        if isinstance(item, dict) and 'id' in item:
+            return (str(item.get('type')), str(item['id']))
+        return None
 
     def bulk_export(self, type: str, export_format='csv', save_as=None, poll_timeout=5):
         """
@@ -387,6 +480,69 @@ class XurrentApiHelper:
                 file.write(result)
             return True
         return result
+
+    def search(self, query: str, types: list = None, max_results: Optional[int] = None) -> list:
+        """
+        Perform a cross-resource full-text search.
+        :param query: Search query string (at least two characters; the API answers shorter queries with HTTP 400)
+        :param types: Optional list of resource types to search (e.g. ['request', 'knowledge-article'])
+        :param max_results: Return at most this many results, sorted by relevance (default: None, all results)
+        :return: List of search results
+        """
+        params = {'q': query}
+        if types:
+            params['types'] = ','.join(types)
+        uri = f"/search?{urlencode(params)}"
+        if max_results:
+            return self.api_call(uri, 'GET', max_results=max_results)
+        return self.api_call(uri, 'GET')
+
+    def bulk_import(self, data: str, import_type: str, import_format: str = 'csv') -> dict:
+        """
+        Perform a bulk import of records.
+        :param data: CSV/TSV data as a string
+        :param import_type: Resource type to import (e.g. 'people', 'configuration_items')
+        :param import_format: Format of the import data ('csv' or 'tsv', default: 'csv')
+        :return: Import result from the API
+        """
+        return self.api_call('/import', method='POST', data={
+            'type': import_type,
+            'import_format': import_format,
+            'data': data
+        })
+
+    def list_archive(self, queryfilter: dict = None) -> list:
+        """
+        List all archived items.
+        :param queryfilter: Optional query filter parameters
+        :return: List of archived items
+        """
+        uri = '/archive'
+        if queryfilter:
+            uri += '?' + self.create_filter_string(queryfilter)
+        return self.api_call(uri, 'GET')
+
+    def list_trash(self, queryfilter: dict = None) -> list:
+        """
+        List all trashed items.
+        :param queryfilter: Optional query filter parameters
+        :return: List of trashed items
+        """
+        uri = '/trash'
+        if queryfilter:
+            uri += '?' + self.create_filter_string(queryfilter)
+        return self.api_call(uri, 'GET')
+
+    def list_audit_lines(self, queryfilter: dict = None) -> list:
+        """
+        List audit log entries.
+        :param queryfilter: Optional query filter parameters
+        :return: List of audit log entries
+        """
+        uri = '/audit_lines'
+        if queryfilter:
+            uri += '?' + self.create_filter_string(queryfilter)
+        return self.api_call(uri, 'GET')
 
     def custom_fields_to_object(self, custom_fields):
         """

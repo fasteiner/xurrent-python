@@ -5,9 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Problems: added `Problem` class with `ProblemPredefinedFilter`, `ProblemStatus`, and `ProblemImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, notes).
+- ServiceInstances: added `ServiceInstance` class with `ServiceInstancePredefinedFilter` and `ServiceInstanceStatus` enums; supports CRUD and sub-resources (cis, slas).
+- Releases: added `Release` class with `ReleasePredefinedFilter`, `ReleaseStatus`, and `ReleaseImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (workflows, notes).
+- Projects: added `Project` class with `ProjectPredefinedFilter`, `ProjectStatus`, and `ProjectCategory` enums; supports CRUD, archive/trash/restore, and sub-resources (tasks, phases, workflows, risks, notes).
+- Contracts: added `Contract` class with `ContractPredefinedFilter` and `ContractStatus` enums; supports CRUD and CI listing.
+- KnowledgeArticles: added `KnowledgeArticle` class with `KnowledgeArticlePredefinedFilter` and `KnowledgeArticleStatus` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, service_instances, translations).
+- Risks: added `Risk` class with `RiskPredefinedFilter`, `RiskStatus`, and `RiskSeverity` enums; supports CRUD, archive/trash/restore, and sub-resources (organizations, projects, services).
+- ServiceOfferings: added `ServiceOffering` class with `ServiceOfferingPredefinedFilter` and `ServiceOfferingStatus` enums; supports CRUD.
+- SkillPools: added `SkillPool` class with `SkillPoolPredefinedFilter` enum; supports CRUD, enable/disable, and sub-resources (members, effort_classes).
+- Requests: added `get_attachments` (attachments of all notes, `GET /requests/:id/note_attachments`), `get_knowledge_articles`, `get_automation_rules`, `get_tags`, and `get_watches` instance methods.
+- Tasks: added `get_notes`, `add_note`, `get_approvals`, `get_cis`, `get_predecessors`, `get_successors`, `get_service_instances`, and `get_automation_rules` instance methods.
+- Workflows: added `get_notes`, `add_note`, `get_automation_rules`, `get_phases`, `get_requests`, and `get_problems` instance methods.
+- People: added `get_cis`, `get_addresses`, `get_contacts`, `get_permissions`, `get_ci_coverages`, `get_sla_coverages`, `get_service_coverages`, `get_out_of_office_periods`, and `get_skill_pools` instance methods.
+- Organizations: added `get_addresses`, `get_contacts`, `get_contracts`, `get_risks`, `get_slas`, and `get_time_allocations` instance methods.
+- Services: added `get_request_templates`, `get_risks`, `get_service_instances`, `get_slas`, and `get_service_offerings` instance methods.
+- Calendars: added `get_duration`, `get_hours` (`GET /calendars/:id/calendar_hours`), and `get_holidays` instance methods.
+- Teams: added `get_service_instances` instance method.
+- Holidays: added `get_calendars` instance method.
+- ClosureCodes: added `ClosureCode` class; supports CRUD.
+- Core: added `search(query, types)` for cross-resource full-text search via `GET /search`.
+- Core: added `bulk_import(data, import_type, import_format)` for CSV/TSV bulk imports via `POST /import`.
+- Core: added `list_archive(queryfilter)` to list all archived items via `GET /archive`.
+- Core: added `list_trash(queryfilter)` to list all trashed items via `GET /trash`.
+- Core: added `list_audit_lines(queryfilter)` to query the global audit log via `GET /audit_lines`.
+- Docs: added `CLAUDE.md` with setup instructions, test commands, architecture overview, and changelog requirements for Claude Code.
+- Products: added `Product` class with `ProductPredefinedFilter` and `ProductDepreciationMethod` enums; supports CRUD, enable/disable, and CI listing.
+- ProductCategories: added `ProductCategory` class with `ProductCategoryRuleSet` enum; supports CRUD and enable/disable.
+- Organizations: added `Organization` class with `OrganizationPredefinedFilter` enum; supports CRUD, enable/disable, archive/trash/restore, people and child org listing.
+- Sites: added `Site` class with `SitePredefinedFilter` enum; supports CRUD, enable/disable, archive/trash/restore.
+- OutOfOfficePeriods: added `OutOfOfficePeriod` class with `OutOfOfficePeriodPredefinedFilter` enum; supports CRUD and DELETE.
+- Holidays: added `Holiday` class; supports CRUD.
+- CustomCollections: added `CustomCollection` class with `CustomCollectionPredefinedFilter` enum; supports CRUD, enable/disable, and element listing.
+- CustomCollectionElements: added `CustomCollectionElement` class with `CustomCollectionElementPredefinedFilter` enum; supports CRUD and enable/disable.
+- ShopArticleCategories: added `ShopArticleCategory` class with `ShopArticleCategoryPredefinedFilter` enum; supports CRUD.
+- ShopArticles: added `ShopArticle` class with `ShopArticlePredefinedFilter` and `ShopArticleRecurringPeriod` enums; supports CRUD and enable/disable.
+- ShopOrderLines: added `ShopOrderLine` class with `ShopOrderLinePredefinedFilter`, `ShopOrderLineStatus`, and `ShopOrderLineRecurringPeriod` enums; supports CRUD.
+- Services: added `Service` class with `ServicePredefinedFilter` enum; supports CRUD and enable/disable.
+- Calendars: added `Calendar` class with `CalendarPredefinedFilter` enum; supports CRUD and enable/disable.
+- TimeAllocations: added `TimeAllocation` class with `TimeAllocationPredefinedFilter` and category enums; supports CRUD and enable/disable.
+- EffortClasses: added `EffortClass` class with `EffortClassPredefinedFilter` enum; supports CRUD and enable/disable.
+- RequestTemplates: added `RequestTemplate` class with `RequestTemplatePredefinedFilter`, `RequestTemplateCategory`, `RequestTemplateStatus`, and `RequestTemplateImpact` enums; supports CRUD and enable/disable.
+- UiExtensions: added `UiExtension` class with `UiExtensionCategory` enum; supports CRUD and enable/disable.
+- WorkflowTemplates: added `WorkflowTemplate` class with `WorkflowTemplatePredefinedFilter` and `WorkflowTemplateCategory` enums; supports CRUD and enable/disable.
+- Core: added an optional `timeout` (seconds) to `XurrentApiHelper` for every HTTP request; without it requests wait without limit as before.
+- Problems: added `ProblemPredefinedFilter.assigned_to_my_team` (`/problems/assigned_to_my_team`); the existing `assigned_to_my_teams` builds a URL the API answers with 404 and is left unchanged for compatibility.
+- ProjectTasks: added `ProjectTask` class with `ProjectTaskPredefinedFilter`, `ProjectTaskStatus`, and `ProjectTaskCategory` enums; supports get, list, update, and notes (`get_notes`, `add_note`).
+- Core: added `max_results` to `api_call()` to stop paginating once enough records were fetched (the page size is reduced accordingly).
+- Core/Requests/Tasks/Problems/KnowledgeArticles: added `max_results` to `search()`, `get_requests()`, `get_tasks()`, `get_problems()`, and `get_knowledge_articles()`.
+- Requests/Tasks/Problems/ProjectTasks/Workflows/Projects/Releases: added `sort` (the API's `?sort=` parameter, e.g. `-created_at`) and `max_results` to `get_notes()`, so `get_notes(sort='-created_at', max_results=1)` reads only the newest note, in one call with `per_page=1`; without them `get_notes()` behaves as before.
+- Tests: read-only smoke check against a real account (`tests/smoke/read_only_check.py`): calls every list function with each predefined filter, `get_by_id` and every reading sub-resource of every domain class (derived from the code), plus `get_me`, `search`, `list_archive`, `list_trash` and `list_audit_lines`, and reports unknown enum values and expected fields missing in responses. Only GET requests can be sent (refused in `api_call` and again in the transport), with `per_page`/`max_results` capped at 3, one page per call, a timeout and a request/time budget; the output contains only check names, statuses, exception types, HTTP status codes and counts, never record contents, IDs or error messages.
+
+### Changed
+
+- People: `Person` now deserializes `site` (→ `Site`) and `organization` (→ `Organization`) references; also fixed a `People.from_data` typo in `update()`.
+- ConfigurationItems: `ConfigurationItem` now deserializes the `product` reference (→ `Product`).
+- Products: `Product` now deserializes the `category` reference (→ `ProductCategory`).
+- CI: updated GitHub Actions in `release.yml` — `GitTools/actions` `v0` → `v3` (latest version compatible with GitVersion 5.x; v4+ requires GitVersion ≥6.1), `stefanzweifel/git-auto-commit-action` `v5` → `v7`, `softprops/action-gh-release` `v1` → `v2`.
+- CI: updated `python-package.yml` — `actions/setup-python` `v3` → `v5`; added `pip install .` so the package itself is installed before tests run; added a `flake8` lint step (syntax errors and undefined names only); split test run into separate `Unit tests` and `Integration tests` steps so unit tests always run regardless of credentials; added Python 3.14 to the test matrix.
+- Dependencies: raised the minimum `requests` version to versions with known security fixes: `>=2.33.0` on Python 3.10+ (CVE-2026-25645 / GHSA-gc5v-m9x4-r6x2, insecure temp file reuse in `extract_zipped_paths()`), and `>=2.32.4` on Python 3.9, which requests 2.33 no longer supports (CVE-2024-47081 / GHSA-9hjg-9r4m-mvj7, `.netrc` credentials leak via malicious URLs). Previously any `requests>=2.32.3` was accepted.
+
+### Fixed
+
+- Core/Requests/Problems/Projects/Releases/Risks/Workflows (and every other model with a category, status or impact enum): a value Xurrent added after this SDK (e.g. a newer request category) no longer stops a record from loading with a `ValueError`; the new `core.enum_or_raw` keeps known values as enum members and unknown ones as plain strings.
+- Core/People/Requests/Tasks/Workflows: restored lazy-loaded cross-module references in type annotations and fixed `Task` sub-resource helper name resolution so flake8 no longer reports `F821` undefined names.
+- Core: URL-encode `search()` query parameters so spaces and reserved characters do not produce ambiguous request URLs.
+- CI: strip an optional leading `v` from release tags before computing the forced patch bump in `release.yml`.
+- Core: `api_call()` stops paginating when a follow-up page only repeats records already fetched; `search()` no longer loops forever when there are more results than fit on one page (the `/search` endpoint keeps sending a `next` link with the same results).
+- Tasks/Requests/People/Teams/Workflows/ConfigurationItems: predefined filter enums without `__str__` (`TaskPredefinedFilter`, `PredefinedNotesFilter`, `PeoplePredefinedFilter`, `TeamPredefinedFilter`, `WorkflowPredefinedFilter`, `ConfigurationItemPredefinedFilter`) now format as their value, so URLs are correct on Python 3.12+ (e.g. `/tasks/assigned_to_me` instead of `/tasks/TaskPredefinedFilter.assigned_to_me`); `str()` is unchanged.
+- Tests: `test_client_credentials_fetches_token` expects the token endpoint derived from `base_url`.
+- KnowledgeArticles/Problems: added the missing API values to `KnowledgeArticleStatus` (`work_in_progress`, `archived`), `ProblemStatus` (`declined`, `assigned`, `accepted`, `waiting_for`, `analyzed`, `change_requested`, `workflow_pending`, `on_backlog`, `project_pending`) and `ProblemImpact` (`none`); listing articles or problems no longer fails with `ValueError` when one record has such a value.
+
+- Calendars/Organizations/Requests (found by the read-only smoke check, each answered HTTP 404 before): `Calendar.get_hours()` reads `/calendars/:id/calendar_hours` instead of `/hours`, `Organization.get_children()` reads `/organizations/:id/children` instead of `/child_organizations`, and `Request.get_attachments()` reads `/requests/:id/note_attachments` instead of `/attachments`.
+- Tasks: `get_workflow(expand=True)` and `get_workflow_of_task(expand=True)` no longer fail with `AttributeError` (the API returns the task's `workflow` reference as a dict, the code read `.id`); `get_workflow()` returns a `Workflow` passed as the reference instead of reading the task again.
+- Risks/ServiceInstances/ServiceOfferings/Contracts/Releases/RequestTemplates: enum values corrected to the API docs and the live API: `RiskStatus` is now `anticipated`, `materialized`, `closed` (the previous values were not risk statuses); `ServiceInstanceStatus` is `being_prepared`, `in_production`, `discontinued` (was `being_created`, `active`, `discontinued`); `ServiceOfferingStatus` adds `planned`, `unpublished`, `discontinued` and drops `not_offered`; `ContractStatus` adds `being_prepared`, `scheduled_for_activation` and drops `being_created`; `ReleaseImpact` adds `none`; `RequestTemplateCategory` adds `order` and `fulfillment` (returned by the API, not in its docs).
+- Projects/Releases/Problems: removed enum values the API does not have: `ProjectStatus.being_created`, `ReleaseStatus.being_created`, `ProblemStatus.registered`.
+- Projects/Risks: `ProjectCategory` lists the default references `small`, `medium`, `large` instead of values the API does not use; project categories and risk severities are defined per account, so other references are kept as text (documented on `ProjectCategory` and `RiskSeverity`).
+- Core: the `search()` docstring says that queries need at least two characters (the API answers shorter ones with HTTP 400).
+- CI: on `main`, `release.yml` now writes the version GitVersion calculated into `CHANGELOG.md` (`.github/scripts/release_changelog.py`, with unit tests). `keep-a-changelog-action`'s `bump` could only count up from the last version in the changelog, so the 0.14.0 release would have got a `[0.12.0]` section (0.11.0 + minor); it also rewrote the Markdown (e.g. escaped underscores), the script changes only the `[Unreleased]` heading and adds the compare link. Removed the now unused step that derived the bump type.
+
+### Removed
+
+- Requests/Problems/Services/ServiceInstances: removed `Request.get_satisfaction_feedback()`, `Problem.get_workflows()`, `Service.get_workflows()` and `ServiceInstance.get_users()`, which were only in preview builds: the API has no such endpoints (HTTP 404). Satisfaction can only be set (`POST /requests/:id/satisfied` or `/dissatisfied`); a problem's workflow is its `workflow` field.
+
 ## [0.11.0] - 2026-04-13
 
 ### Added
+
 
 - Core: support OAuth client credentials authentication via `client_id` and `client_secret` in `XurrentApiHelper` while maintaining API key compatibility.
 - Core: The OAuth token endpoint now dynamically determines the domain from `base_url`, preserving any regional subdomains to ensure consistency between API and OAuth endpoints.

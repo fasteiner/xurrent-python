@@ -8,6 +8,10 @@ class TeamPredefinedFilter(str, Enum):
     disabled = "disabled"  # List all disabled teams
     enabled = "enabled"  # List all enabled teams
 
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
+
 T = TypeVar('T', bound='Team')
 
 class Team(JsonSerializableDict):
@@ -113,3 +117,10 @@ class Team(JsonSerializableDict):
         """
         uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/trash'
         return self._connection_object.api_call(uri, 'POST')
+
+    def get_service_instances(self) -> List:
+        """Retrieve service instances assigned to this team."""
+        from .service_instances import ServiceInstance
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/service_instances'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ServiceInstance.from_data(self._connection_object, si) for si in response]

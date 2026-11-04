@@ -1,7 +1,10 @@
-from .core import XurrentApiHelper, JsonSerializableDict
-from .workflows import Workflow
+from __future__ import annotations
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes
 from enum import Enum
-from typing import Optional, List, Dict, Type, TypeVar
+from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .workflows import Workflow
 
 
 T = TypeVar('T', bound='Task')
@@ -13,6 +16,10 @@ class TaskPredefinedFilter(str, Enum):
     assigned_to_my_team = "assigned_to_my_team"  # List all tasks that are assigned to one of the teams that the API user is a member of
     assigned_to_me = "assigned_to_me"  # List all tasks that are assigned to the API user
     approval_by_me = "approval_by_me"  # List all approval tasks that are assigned to the API user and which status is different from ‘Registered’
+
+    def __format__(self, format_spec):
+        # Python 3.12+ formats mixed-in enums as "Class.member"; URLs need the value
+        return format(self.value, format_spec)
 
 class TaskStatus(str, Enum):
     registered = "registered"  # Registered
@@ -68,28 +75,55 @@ class Task(JsonSerializableDict):
         return cls.from_data(connection_object, connection_object.api_call(uri, 'GET'))
 
     @classmethod
-    def get_tasks(cls, connection_object: XurrentApiHelper, predefinedFilter: TaskPredefinedFilter = None, queryfilter: dict = None) -> List[T]:
+    def get_tasks(cls, connection_object: XurrentApiHelper, predefinedFilter: TaskPredefinedFilter = None, queryfilter: dict = None, max_results: Optional[int] = None) -> List[T]:
         uri = f'{connection_object.base_url}/{cls.__resourceUrl__}'
         if predefinedFilter:
             uri = f'{uri}/{predefinedFilter}'
         if queryfilter:
-            uri += '?' + self._connection_object.create_filter_string(queryfilter)
-        return connection_object.api_call(uri, 'GET')
+            uri += '?' + connection_object.create_filter_string(queryfilter)
+        if max_results:
+            response = connection_object.api_call(uri, 'GET', max_results=max_results)
+        else:
+            response = connection_object.api_call(uri, 'GET')
+        return [cls.from_data(connection_object, task) for task in response]
 
     @staticmethod
-    def get_workflow_of_task(connection_object: XurrentApiHelper, id, expand: bool = False) -> Workflow:
-        task = Task.get_by_id(connection_object, id)
-        if expand:
-            return Workflow.get_by_id(connection_object, task.workflow.id)
-        return Workflow.from_data(connection_object, task.workflow)
+    def _reference_id(reference):
+        """
+        ID of a referenced record, whether it is the dict from the API or a model instance.
 
-    def get_workflow(self, expand: bool = False) -> Workflow:
-        if task.workflow and not expand:
-            return Workflow.from_data(self._connection_object, self.workflow)
-        elif task.workflow and expand:
-            return Workflow.get_by_id(self._connection_object, self.workflow.id)
-        elif not task.workflow:
+        >>> Task._reference_id({'id': 5, 'subject': 'Workflow'})
+        5
+        >>> Task._reference_id(Task(None, id=6))
+        6
+        >>> Task._reference_id(None) is None
+        True
+        """
+        if isinstance(reference, JsonSerializableDict):
+            return getattr(reference, 'id', None)
+        if isinstance(reference, dict):
+            return reference.get('id')
+        return getattr(reference, 'id', None)
+
+    @staticmethod
+    def get_workflow_of_task(connection_object: XurrentApiHelper, id, expand: bool = False) -> "Workflow":
+        task = Task.get_by_id(connection_object, id)
+        return task._workflow(expand)
+
+    def get_workflow(self, expand: bool = False) -> "Workflow":
+        # Model instances are empty dicts (their data are attributes), so test them by type
+        if not (isinstance(self.workflow, JsonSerializableDict) or self.workflow):
             return Task.get_workflow_of_task(self._connection_object, self.id, expand)
+        return self._workflow(expand)
+
+    def _workflow(self, expand: bool) -> "Workflow":
+        """The task's workflow reference as a Workflow; with expand, the full workflow from the API."""
+        from .workflows import Workflow
+        if expand:
+            return Workflow.get_by_id(self._connection_object, Task._reference_id(self.workflow))
+        if isinstance(self.workflow, Workflow):
+            return self.workflow
+        return Workflow.from_data(self._connection_object, self.workflow)
 
 
     @staticmethod
@@ -172,3 +206,61 @@ class Task(JsonSerializableDict):
         uri = f'{connection_object.base_url}/workflows/{workflowID}/{cls.__resourceUrl__}'
         response = connection_object.api_call(uri, 'POST', data)
         return cls.from_data(connection_object, response)
+
+    def get_notes(self, queryfilter: dict = None, sort: Optional[str] = None,
+                  max_results: Optional[int] = None) -> List[dict]:
+        """
+        Retrieve the notes of the current task.
+        :param queryfilter: Optional filter parameters (e.g. created_at, medium, person)
+        :param sort: Optional order, e.g. '-created_at' for the newest note first (default: ascending by id)
+        :param max_results: Return at most this many notes, fetching only the pages needed (default: all)
+        :return: List of notes
+        """
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        return list_notes(self._connection_object, uri, queryfilter, sort, max_results)
+
+    def add_note(self, note) -> dict:
+        """Add a note to the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/notes'
+        if isinstance(note, dict):
+            return self._connection_object.api_call(uri, 'POST', note)
+        elif isinstance(note, str):
+            return self._connection_object.api_call(uri, 'POST', {'text': note})
+        else:
+            raise TypeError(f"Expected 'note' to be a str or dict, got {type(note).__name__}")
+
+    def get_approvals(self) -> List[dict]:
+        """Retrieve all approvals for the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/approvals'
+        return self._connection_object.api_call(uri, 'GET')
+
+    def get_cis(self) -> List:
+        """Retrieve configuration items associated with the current task instance."""
+        from .configuration_items import ConfigurationItem
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/cis'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ConfigurationItem.from_data(self._connection_object, ci) for ci in response]
+
+    def get_predecessors(self) -> List:
+        """Retrieve predecessor tasks for the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/predecessors'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Task.from_data(self._connection_object, t) for t in response]
+
+    def get_successors(self) -> List:
+        """Retrieve successor tasks for the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/successors'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [Task.from_data(self._connection_object, t) for t in response]
+
+    def get_service_instances(self) -> List:
+        """Retrieve service instances associated with the current task instance."""
+        from .service_instances import ServiceInstance
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/service_instances'
+        response = self._connection_object.api_call(uri, 'GET')
+        return [ServiceInstance.from_data(self._connection_object, si) for si in response]
+
+    def get_automation_rules(self) -> List[dict]:
+        """Retrieve automation rules associated with the current task instance."""
+        uri = f'{self._connection_object.base_url}/{self.__resourceUrl__}/{self.id}/automation_rules'
+        return self._connection_object.api_call(uri, 'GET')
