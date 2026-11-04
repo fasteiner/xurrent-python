@@ -56,6 +56,7 @@ class WorkflowPredefinedFilter(str, Enum):
 
 
 class Workflow(JsonSerializableDict):
+    """A workflow (change) with its tasks, linked requests and problems."""
     # https://developer.xurrent.com/v1/workflows/
     __resourceUrl__ = 'workflows'
 

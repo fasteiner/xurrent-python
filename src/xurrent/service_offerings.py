@@ -26,6 +26,10 @@ class ServiceOfferingStatus(str, Enum):
 
 
 class ServiceOffering(JsonSerializableDict):
+    """
+    A service offering: the conditions (support hours, targets, charges) under which a service is
+    provided.
+    """
     # https://developer.xurrent.com/v1/service_offerings/
     __resourceUrl__ = 'service_offerings'
 

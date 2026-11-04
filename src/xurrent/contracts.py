@@ -25,6 +25,7 @@ class ContractStatus(str, Enum):
 
 
 class Contract(JsonSerializableDict):
+    """A contract with a customer or supplier organization, covering configuration items."""
     # https://developer.xurrent.com/v1/contracts/
     __resourceUrl__ = 'contracts'
 

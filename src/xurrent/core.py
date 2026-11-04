@@ -97,6 +97,11 @@ def list_notes(connection_object: XurrentApiHelper, uri: str, queryfilter: dict 
 
 
 class XurrentApiHelper:
+    """
+    Connection to the Xurrent API: authentication (API token or OAuth client credentials),
+    pagination, retries on rate limits, and helpers for search, archive, trash, audit lines and bulk
+    export/import.
+    """
     api_user: "Person"
     api_user_teams: List["Team"]
 
@@ -593,7 +598,7 @@ class XurrentApiHelper:
     def decode_api_id(self, id: str):
         """
         API resource IDs are base64-encoded strings with the padding bytes stripped off.
-        Ensure approproate padding and decode.
+        Ensure appropriate padding and decode.
         :param id: Encoded Xurrent resource ID
         :return: String containing the decoded ID
         >>> helper = XurrentApiHelper('https://api.example.com', 'api_key', 'account', False)

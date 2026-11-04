@@ -15,6 +15,7 @@ class SkillPoolPredefinedFilter(str, Enum):
 
 
 class SkillPool(JsonSerializableDict):
+    """A skill pool: a group of people with a specific expertise, with its effort classes."""
     # https://developer.xurrent.com/v1/skill_pools/
     __resourceUrl__ = 'skill_pools'
 

@@ -24,6 +24,7 @@ class ShopArticleRecurringPeriod(str, Enum):
 
 
 class ShopArticle(JsonSerializableDict):
+    """An article that can be ordered in the shop."""
     # https://developer.xurrent.com/v1/shop_articles/
     __resourceUrl__ = 'shop_articles'
 

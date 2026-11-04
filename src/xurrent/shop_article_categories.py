@@ -15,6 +15,7 @@ class ShopArticleCategoryPredefinedFilter(str, Enum):
 
 
 class ShopArticleCategory(JsonSerializableDict):
+    """A category that groups shop articles."""
     # https://developer.xurrent.com/v1/shop_article_categories/
     __resourceUrl__ = 'shop_article_categories'
 

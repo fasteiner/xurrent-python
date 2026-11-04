@@ -15,6 +15,7 @@ class TeamPredefinedFilter(str, Enum):
 T = TypeVar('T', bound='Team')
 
 class Team(JsonSerializableDict):
+    """A team of people to which requests, tasks and problems are assigned."""
     #https://developer.xurrent.com/v1/teams/
     __resourceUrl__ = 'teams'
 

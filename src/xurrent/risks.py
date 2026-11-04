@@ -36,6 +36,7 @@ class RiskSeverity(str, Enum):
 
 
 class Risk(JsonSerializableDict):
+    """A risk that could affect services, projects or organizations."""
     # https://developer.xurrent.com/v1/risks/
     __resourceUrl__ = 'risks'
 

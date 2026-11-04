@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Docs: API reference generated from the source code in `docs/api/`: a page per class with its fields, enums, methods (signature, description and the API endpoint each one calls) and cross references in both directions, plus an overview of all classes and enums; `python docs/generate_api_docs.py` regenerates it (`--check` verifies it, `--wiki DIR` writes the same pages for the GitHub wiki) and a unit test fails while it is out of date. The README links to it with a table of all classes.
+- Docs: one-line docstrings for all domain classes and `XurrentApiHelper` (shown by `help()`, IDEs and the API reference).
+
+### Fixed
+
+- Docs: README examples that did not work: `Request.get_requests()` (was `get_request`), `Task.get_tasks()` (was `get_task`), `Team.get_teams(predefinedFilter=...)` (was `get_team(predifinedFilter=...)`), `request.get_note_by_id()` and `request.get_notes(predefinedFilter=...)` without the helper argument, `Task.get_workflow_of_task()` (was the non-existent `get_workflow_by_template_id`), `from xurrent.requests` (was `src.xurrent.requests`), `bulk_export()` returns bytes (decoded before parsing the CSV), the configuration item example without the non-existent `type` field, and the People example calling `enable()` on a list.
+
+## [0.14.0] - 2026-11-04
+
+### Added
+
 - Problems: added `Problem` class with `ProblemPredefinedFilter`, `ProblemStatus`, and `ProblemImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (requests, notes).
 - ServiceInstances: added `ServiceInstance` class with `ServiceInstancePredefinedFilter` and `ServiceInstanceStatus` enums; supports CRUD and sub-resources (cis, slas).
 - Releases: added `Release` class with `ReleasePredefinedFilter`, `ReleaseStatus`, and `ReleaseImpact` enums; supports CRUD, archive/trash/restore, and sub-resources (workflows, notes).
@@ -376,6 +387,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
 
+[0.14.0]: https://github.com/fasteiner/xurrent-python/compare/v0.11.0...v0.14.0
 [0.11.0]: https://github.com/fasteiner/xurrent-python/compare/v0.10.0...v0.11.0
 
 [0.10.0]: https://github.com/fasteiner/xurrent-python/compare/v0.9.1...v0.10.0

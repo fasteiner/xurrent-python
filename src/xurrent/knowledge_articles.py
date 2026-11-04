@@ -26,6 +26,10 @@ class KnowledgeArticleStatus(str, Enum):
 
 
 class KnowledgeArticle(JsonSerializableDict):
+    """
+    A knowledge article with instructions for end users or specialists, linked to services and
+    requests.
+    """
     # https://developer.xurrent.com/v1/knowledge_articles/
     __resourceUrl__ = 'knowledge_articles'
 
