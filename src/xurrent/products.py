@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='Product')
@@ -60,7 +60,7 @@ class Product(JsonSerializableDict):
                          else ProductCategory.from_data(connection_object, category)
                          if isinstance(category, dict) else category)
         self.disabled = disabled
-        self.depreciation_method = ProductDepreciationMethod(depreciation_method) if depreciation_method else None
+        self.depreciation_method = enum_or_raw(ProductDepreciationMethod, depreciation_method) if depreciation_method else None
 
         from .teams import Team
         self.support_team = (support_team if isinstance(support_team, Team)

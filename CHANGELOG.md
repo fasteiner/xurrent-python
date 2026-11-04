@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Core/Requests/Problems/Projects/Releases/Risks/Workflows (and every other model with a category, status or impact enum): a value Xurrent added after this SDK (e.g. a newer request category) no longer stops a record from loading with a `ValueError`; the new `core.enum_or_raw` keeps known values as enum members and unknown ones as plain strings.
 - Core/People/Requests/Tasks/Workflows: restored lazy-loaded cross-module references in type annotations and fixed `Task` sub-resource helper name resolution so flake8 no longer reports `F821` undefined names.
 - Core: URL-encode `search()` query parameters so spaces and reserved characters do not produce ambiguous request URLs.
 - CI: strip an optional leading `v` from release tags before computing the forced patch bump in `release.yml`.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='KnowledgeArticle')
@@ -38,7 +38,7 @@ class KnowledgeArticle(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = KnowledgeArticleStatus(status) if isinstance(status, str) else status
+        self.status = enum_or_raw(KnowledgeArticleStatus, status)
 
         for key, value in kwargs.items():
             setattr(self, key, value)

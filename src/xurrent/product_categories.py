@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='ProductCategory')
@@ -37,7 +37,7 @@ class ProductCategory(JsonSerializableDict):
         self._connection_object = connection_object
         self.name = name
         self.group = group
-        self.rule_set = ProductCategoryRuleSet(rule_set) if rule_set else None
+        self.rule_set = enum_or_raw(ProductCategoryRuleSet, rule_set) if rule_set else None
         self.reference = reference
         self.disabled = disabled
         self.picture_uri = picture_uri

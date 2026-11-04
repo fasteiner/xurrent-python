@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='RequestTemplate')
@@ -78,9 +78,9 @@ class RequestTemplate(JsonSerializableDict):
         self._connection_object = connection_object
         self.subject = subject
         self.disabled = disabled
-        self.category = RequestTemplateCategory(category) if category else None
-        self.status = RequestTemplateStatus(status) if status else None
-        self.impact = RequestTemplateImpact(impact) if impact else None
+        self.category = enum_or_raw(RequestTemplateCategory, category) if category else None
+        self.status = enum_or_raw(RequestTemplateStatus, status) if status else None
+        self.impact = enum_or_raw(RequestTemplateImpact, impact) if impact else None
 
         from .services import Service
         self.service = (service if isinstance(service, Service)

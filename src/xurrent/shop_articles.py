@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='ShopArticle')
@@ -50,7 +50,7 @@ class ShopArticle(JsonSerializableDict):
         self.reference = reference
         self.disabled = disabled
         self.price = price
-        self.recurring_period = ShopArticleRecurringPeriod(recurring_period) if recurring_period else None
+        self.recurring_period = enum_or_raw(ShopArticleRecurringPeriod, recurring_period) if recurring_period else None
         self.max_quantity = max_quantity
         self.short_description = short_description
         self.full_description = full_description
