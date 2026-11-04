@@ -1,7 +1,7 @@
 from __future__ import annotations  # Needed for forward references
 from datetime import datetime
 from typing import Optional, List, Dict, TYPE_CHECKING
-from .core import XurrentApiHelper, JsonSerializableDict, list_notes
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes, enum_or_raw
 from enum import Enum
 
 if TYPE_CHECKING:
@@ -70,8 +70,8 @@ class Workflow(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = WorkflowStatus(status) if status else None
-        self.category = WorkflowCategory(category) if category else None
+        self.status = enum_or_raw(WorkflowStatus, status) if status else None
+        self.category = enum_or_raw(WorkflowCategory, category) if category else None
         from .people import Person
         self.manager =  manager if isinstance(manager, Person) else Person.from_data(connection_object, manager) if manager else None
         for key, value in kwargs.items():

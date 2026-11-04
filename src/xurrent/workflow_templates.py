@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict
+from .core import XurrentApiHelper, JsonSerializableDict, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='WorkflowTemplate')
@@ -42,7 +42,7 @@ class WorkflowTemplate(JsonSerializableDict):
         self._connection_object = connection_object
         self.subject = subject
         self.disabled = disabled
-        self.category = WorkflowTemplateCategory(category) if category else None
+        self.category = enum_or_raw(WorkflowTemplateCategory, category) if category else None
 
         from .services import Service
         self.service = (service if isinstance(service, Service)

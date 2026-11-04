@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, TypeVar
-from .core import XurrentApiHelper, JsonSerializableDict, list_notes
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes, enum_or_raw
 from enum import Enum
 
 T = TypeVar('T', bound='Release')
@@ -51,8 +51,8 @@ class Release(JsonSerializableDict):
         self.id = id
         self._connection_object = connection_object
         self.subject = subject
-        self.status = ReleaseStatus(status) if isinstance(status, str) else status
-        self.impact = ReleaseImpact(impact) if isinstance(impact, str) else impact
+        self.status = enum_or_raw(ReleaseStatus, status)
+        self.impact = enum_or_raw(ReleaseImpact, impact)
 
         from .people import Person
         self.manager = (manager if isinstance(manager, Person)

@@ -66,9 +66,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Products: `Product` now deserializes the `category` reference (→ `ProductCategory`).
 - CI: updated GitHub Actions in `release.yml` — `GitTools/actions` `v0` → `v3` (latest version compatible with GitVersion 5.x; v4+ requires GitVersion ≥6.1), `stefanzweifel/git-auto-commit-action` `v5` → `v7`, `softprops/action-gh-release` `v1` → `v2`.
 - CI: updated `python-package.yml` — `actions/setup-python` `v3` → `v5`; added `pip install .` so the package itself is installed before tests run; added a `flake8` lint step (syntax errors and undefined names only); split test run into separate `Unit tests` and `Integration tests` steps so unit tests always run regardless of credentials; added Python 3.14 to the test matrix.
+- Dependencies: raised the minimum `requests` version to versions with known security fixes: `>=2.33.0` on Python 3.10+ (CVE-2026-25645 / GHSA-gc5v-m9x4-r6x2, insecure temp file reuse in `extract_zipped_paths()`), and `>=2.32.4` on Python 3.9, which requests 2.33 no longer supports (CVE-2024-47081 / GHSA-9hjg-9r4m-mvj7, `.netrc` credentials leak via malicious URLs). Previously any `requests>=2.32.3` was accepted.
 
 ### Fixed
 
+- Core/Requests/Problems/Projects/Releases/Risks/Workflows (and every other model with a category, status or impact enum): a value Xurrent added after this SDK (e.g. a newer request category) no longer stops a record from loading with a `ValueError`; the new `core.enum_or_raw` keeps known values as enum members and unknown ones as plain strings.
 - Core/People/Requests/Tasks/Workflows: restored lazy-loaded cross-module references in type annotations and fixed `Task` sub-resource helper name resolution so flake8 no longer reports `F821` undefined names.
 - Core: URL-encode `search()` query parameters so spaces and reserved characters do not produce ambiguous request URLs.
 - CI: strip an optional leading `v` from release tags before computing the forced patch bump in `release.yml`.

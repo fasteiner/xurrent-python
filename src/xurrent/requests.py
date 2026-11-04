@@ -1,5 +1,5 @@
 from __future__ import annotations  # Needed for forward references
-from .core import XurrentApiHelper, JsonSerializableDict, list_notes
+from .core import XurrentApiHelper, JsonSerializableDict, list_notes, enum_or_raw
 from enum import Enum
 from datetime import datetime
 from typing import Optional, List, Dict, Type, TypeVar, TYPE_CHECKING
@@ -120,7 +120,7 @@ class Request(JsonSerializableDict):
         self.source = source
         self.sourceID = sourceID
         self.subject = subject
-        self.category = RequestCategory(category) if isinstance(category, str) else category if category else None
+        self.category = enum_or_raw(RequestCategory, category) if category else None
         self.impact = impact
         self.status = status
         self.next_target_at = next_target_at

@@ -15,6 +15,30 @@ if TYPE_CHECKING:
     from .people import Person
     from .teams import Team
 
+
+def enum_or_raw(enum_cls, value):
+    """``value`` as a member of ``enum_cls`` when it is one of its values; any other string
+    as it came (Xurrent adds categories and statuses over time, e.g. a newer request
+    category, and a record must not fail to load because of it); None and non-strings as
+    they are.
+
+    >>> class Colour(str, Enum):
+    ...     red = "red"
+    >>> enum_or_raw(Colour, "red") is Colour.red
+    True
+    >>> enum_or_raw(Colour, "violet")
+    'violet'
+    >>> enum_or_raw(Colour, None) is None
+    True
+    """
+    if not isinstance(value, str):
+        return value
+    try:
+        return enum_cls(value)
+    except ValueError:
+        return value
+
+
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
     INFO = logging.INFO
