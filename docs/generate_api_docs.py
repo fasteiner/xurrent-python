@@ -303,17 +303,18 @@ def _fields(init: ast.FunctionDef, known: Set[str], enums: Dict[str, EnumInfo]) 
 # ----------------------------------------------------------------------------------------------------
 
 class Links:
-    """Link targets for the repository (Request.md) or the wiki (Request)."""
+    """Link targets for the repository (Request.md) or the wiki (absolute URLs: GitHub serves the wiki home
+    page at .../wiki without a trailing slash, where a relative link like "Request" would leave the wiki)."""
 
     def __init__(self, wiki: bool):
         self.wiki = wiki
 
     def page(self, name: str, anchor: str = '') -> str:
-        target = name if self.wiki else f'{name}.md'
+        target = f'{REPO_URL}/wiki/{name}' if self.wiki else f'{name}.md'
         return target + (f'#{anchor.lower()}' if anchor else '')
 
     def index(self) -> str:
-        return 'Home' if self.wiki else 'README.md'
+        return f'{REPO_URL}/wiki' if self.wiki else 'README.md'
 
 
 def _cell(text: str) -> str:

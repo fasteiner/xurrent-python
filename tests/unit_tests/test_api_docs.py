@@ -54,9 +54,12 @@ def test_every_class_method_and_enum_is_documented(package):
 def test_no_dangling_links(wiki):
     pages = gen.build(wiki=wiki)
     page_anchors = {name[:-3]: anchors(content) for name, content in pages.items()}
+    wiki_url = f"{gen.REPO_URL}/wiki"
     for name, content in pages.items():
         for target in LINK.findall(content):
-            if target.startswith("http"):
+            if wiki and target.startswith(wiki_url):
+                target = target[len(wiki_url):].lstrip("/") or "Home"
+            elif target.startswith("http"):
                 continue
             page, _, anchor = target.partition("#")
             page = page[:-3] if page.endswith(".md") else page
@@ -100,8 +103,12 @@ def test_cross_references_both_directions():
 def test_wiki_pages_use_wiki_links():
     pages = gen.build(wiki=True)
     assert "Home.md" in pages and "_Sidebar.md" in pages and "README.md" not in pages
-    assert "](Person)" in pages["Request.md"] and ".md)" not in pages["Request.md"]
-    assert "- [Request](Request)" in pages["_Sidebar.md"]
+    # Absolute links: the wiki home page is served at .../wiki (no trailing slash), relative links would break
+    wiki = f"{gen.REPO_URL}/wiki"
+    assert f"]({wiki}/Person)" in pages["Request.md"] and ".md)" not in pages["Request.md"]
+    assert f"- [Request]({wiki}/Request)" in pages["_Sidebar.md"]
+    assert f"]({wiki}/Request)" in pages["Home.md"]
+    assert not re.search(r"\]\((?!https?://|#)", "".join(pages.values()))
 
 
 def test_render_doc_lists_parameters_and_fences_examples():
