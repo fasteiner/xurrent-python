@@ -206,6 +206,15 @@ def test_request_close(mock_connection, request_instance):
     assert response.status == "completed"
     assert response.completion_reason == "solved"
 
+def test_request_close_without_a_team_says_so(mock_connection, request_instance):
+    # An API user in no team (e.g. an OAuth client's user): a clear error, no IndexError.
+    mock_connection.api_user_teams = []
+
+    with pytest.raises(ValueError, match="Team ID must be provided"):
+        request_instance.close(note="Closing test")
+
+    mock_connection.api_call.assert_not_called()
+
 def test_request_close_and_trash(mock_connection, request_instance):
     mock_connection.api_call.side_effect = [
         {"status": "completed", "completion_reason": "solved", "id": request_instance.id, "trashed": False},

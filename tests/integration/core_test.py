@@ -1,7 +1,6 @@
 import pytest
 import os
 import sys
-from dotenv import load_dotenv
 import logging
 
 # Add the `../src` directory to sys.path
@@ -14,29 +13,11 @@ from xurrent.people import Person
 
 # FILE: src/xurrent/test_core.py
 
-@pytest.fixture
-def x_api_helper():
-    # Retrieve environment variables
-    # Load .env file only if the environment variables are not already set
-    if not os.getenv("APITOKEN") or not os.getenv("APIACCOUNT") or not os.getenv("APIURL"):
-        load_dotenv()
-    api_token = os.getenv("APITOKEN")  # Fetches DEMO_API_TOKEN, returns None if not set
-    api_account = os.getenv("APIACCOUNT")
-    api_url = os.getenv("APIURL")
 
-    # Check if the environment variables are properly set
-    if not all([api_token, api_account, api_url]):
-        raise EnvironmentError("One or more environment variables are missing.")
-    helper = XurrentApiHelper(api_url, api_token, api_account, True)
-    return helper
-
-def test_api_helper_setup(x_api_helper):
-    api_token = os.getenv("APITOKEN")  # Fetches DEMO_API_TOKEN, returns None if not set
-    api_account = os.getenv("APIACCOUNT")
-    api_url = os.getenv("APIURL")
+def test_api_helper_setup(x_api_helper, integration_credentials):
     assert x_api_helper is not None
-    assert x_api_helper.base_url == api_url
-    assert x_api_helper.api_account == api_account
+    assert x_api_helper.base_url == integration_credentials.api_url
+    assert x_api_helper.api_account == integration_credentials.account
 
     #check if the api_user is an instance of Person and has an id, which is int
     assert isinstance(x_api_helper.api_user, Person)
@@ -56,4 +37,4 @@ def test_set_log_level(x_api_helper):
     x_api_helper.set_log_level(logging.WARNING)
     assert x_api_helper.logger.level == logging.WARNING
     
-    
+    
