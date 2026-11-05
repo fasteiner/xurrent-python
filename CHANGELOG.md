@@ -13,8 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docs: `python docs/generate_api_docs.py` generates the reference from the source code (`--check` only verifies it, `--wiki DIR` writes the wiki pages); a unit test fails when `docs/api/` is out of date.
 - Docs: every domain class and `XurrentApiHelper` has a one-line docstring, shown by `help()` and in IDEs.
 
+### Changed
+
+- Tests: the integration tests log in with OAuth client credentials (`XURRENT_CLIENT_ID` / `XURRENT_CLIENT_SECRET`; CI secrets `DEMO_CLIENT_ID` / `DEMO_CLIENT_SECRET`) and fall back to `APITOKEN`; one shared fixture in `tests/integration/conftest.py`. The tests also run on pull requests into `Dev`.
+
 ### Fixed
 
+- Requests: `close()` without `team_id` raises a clear `ValueError` when the API user is in no team (for example an OAuth client's user), instead of an `IndexError`.
 - Docs: README examples that did not work: `Request.get_requests()`, `Task.get_tasks()` and `Team.get_teams(predefinedFilter=...)` were misspelled, `request.get_notes()` and `request.get_note_by_id()` were called with the helper as an extra argument, `Task.get_workflow_of_task()` replaces the non-existent `get_workflow_by_template_id()`, imports use `xurrent` instead of `src.xurrent`, the `bulk_export()` example decodes the returned bytes, and the configuration item and people examples no longer use a non-existent `type` field or call `enable()` on a list.
 
 ## [0.14.0] - 2026-11-04

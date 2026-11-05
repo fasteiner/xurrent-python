@@ -7,7 +7,8 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "Dev" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,16 +25,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Set environment variables
-      env:
-        API_TOKEN: ${{ secrets.DEMO_API_TOKEN }}
-        APIACCOUNT: ${{ vars.DEMO_APIACCOUNT }}
-        APIURL: ${{ vars.DEMO_APIURL }}
-      run: |
-        echo "Environment variables set:"
-        echo "APITOKEN=*******"
-        echo "APIACCOUNT=${{ vars.DEMO_APIACCOUNT }}"
-        echo "APIURL=${{ vars.DEMO_APIURL }}"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -49,6 +40,9 @@ jobs:
         pytest ./src/ --doctest-modules -v
     - name: Integration tests
       env:
+        # OAuth client credentials of the demo account; DEMO_API_TOKEN is only the fallback.
+        XURRENT_CLIENT_ID: ${{ secrets.DEMO_CLIENT_ID }}
+        XURRENT_CLIENT_SECRET: ${{ secrets.DEMO_CLIENT_SECRET }}
         APITOKEN: ${{ secrets.DEMO_API_TOKEN }}
         APIACCOUNT: ${{ vars.DEMO_APIACCOUNT }}
         APIURL: ${{ vars.DEMO_APIURL }}

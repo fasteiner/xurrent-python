@@ -34,7 +34,7 @@ pytest ./tests/unit_tests/test_core_oauth.py::test_init_requires_authentication_
 # Doctests in source modules
 pytest ./src/ --doctest-modules -v
 
-# Integration tests (requires env vars: APITOKEN, APIACCOUNT, APIURL)
+# Integration tests (XURRENT_CLIENT_ID/XURRENT_CLIENT_SECRET or APITOKEN, plus APIACCOUNT, APIURL)
 pytest ./tests/integration
 
 # Regenerate the API reference (docs/api/ and the class table in README.md) after changing
@@ -46,7 +46,7 @@ python docs/generate_api_docs.py
 python tests/smoke/read_only_check.py
 ```
 
-Integration tests require a `.env` file or environment variables: `APITOKEN`, `APIACCOUNT`, `APIURL`.
+Integration tests require a `.env` file or environment variables: `XURRENT_CLIENT_ID` and `XURRENT_CLIENT_SECRET` (OAuth, preferred) or `APITOKEN`, plus `APIACCOUNT` and `APIURL` (`tests/integration/conftest.py`). CI reads the secrets `DEMO_CLIENT_ID` / `DEMO_CLIENT_SECRET` (fallback `DEMO_API_TOKEN`) and the variables `DEMO_APIACCOUNT` / `DEMO_APIURL`.
 
 ### Pre-commit
 

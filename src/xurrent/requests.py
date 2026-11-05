@@ -287,9 +287,10 @@ class Request(JsonSerializableDict):
             if not member_id:
                 raise ValueError("Member ID must be provided to close the request.")
         if not team_id:
-            team_id = self._connection_object.api_user_teams[0].id
+            teams = self._connection_object.api_user_teams or []
+            team_id = teams[0].id if teams else None
             if not team_id:
-                raise ValueError("Team ID must be provided to close the request.")
+                raise ValueError("Team ID must be provided to close the request (the API user is in no team).")
         return self.update({'status': 'completed', 'completion_reason': completion_reason, 'note': note, "member_id": member_id, 'team_id': team_id})
 
     def close_and_trash(self, note: str = "Closing and trashing request", completion_reason: CompletionReason = CompletionReason.solved):
