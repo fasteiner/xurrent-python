@@ -17,6 +17,7 @@ class SitePredefinedFilter(str, Enum):
 
 
 class Site(JsonSerializableDict):
+    """A site (location) of people and configuration items."""
     # https://developer.xurrent.com/v1/sites/
     __resourceUrl__ = 'sites'
 

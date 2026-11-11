@@ -23,6 +23,7 @@ class PeoplePredefinedFilter(str, Enum):
 T = TypeVar('T', bound='Person')
 
 class Person(JsonSerializableDict):
+    """A person (user) of the account; Person.get_me() returns the API user."""
     #https://developer.xurrent.com/v1/people/
     __resourceUrl__ = 'people'
 

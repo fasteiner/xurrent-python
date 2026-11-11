@@ -37,6 +37,7 @@ class ProjectCategory(str, Enum):
 
 
 class Project(JsonSerializableDict):
+    """A project with its phases, tasks, workflows and risks."""
     # https://developer.xurrent.com/v1/projects/
     __resourceUrl__ = 'projects'
 

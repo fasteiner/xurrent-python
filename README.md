@@ -5,7 +5,41 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 
-This module is used to interact with the Xurrent API. It provides a set of classes to interact with the API.
+This module is used to interact with the [Xurrent API](https://developer.xurrent.com/v1/). It provides a class per
+Xurrent resource (requests, tasks, workflows, people, CIs, ...) and handles authentication (API token or OAuth client
+credentials), pagination and rate limits.
+
+```bash
+pip install xurrent
+```
+
+## Documentation
+
+The [API reference](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/README.md) has a page per class
+with its fields, enums, methods (with the API endpoint each one calls) and cross references to the other classes:
+
+<!-- api-reference:start -->
+| Class | API resource | Class | API resource |
+|---|---|---|---|
+| [Calendar](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Calendar.md) | `/calendars` | [Request](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Request.md) | `/requests` |
+| [ClosureCode](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ClosureCode.md) | `/closure_codes` | [RequestTemplate](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/RequestTemplate.md) | `/request_templates` |
+| [ConfigurationItem](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ConfigurationItem.md) | `/cis` | [Risk](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Risk.md) | `/risks` |
+| [Contract](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Contract.md) | `/contracts` | [Service](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Service.md) | `/services` |
+| [CustomCollection](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/CustomCollection.md) | `/custom_collections` | [ServiceInstance](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ServiceInstance.md) | `/service_instances` |
+| [CustomCollectionElement](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/CustomCollectionElement.md) | `/custom_collection_elements` | [ServiceOffering](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ServiceOffering.md) | `/service_offerings` |
+| [EffortClass](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/EffortClass.md) | `/effort_classes` | [ShopArticle](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ShopArticle.md) | `/shop_articles` |
+| [Holiday](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Holiday.md) | `/holidays` | [ShopArticleCategory](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ShopArticleCategory.md) | `/shop_article_categories` |
+| [KnowledgeArticle](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/KnowledgeArticle.md) | `/knowledge_articles` | [ShopOrderLine](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ShopOrderLine.md) | `/shop_order_lines` |
+| [Organization](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Organization.md) | `/organizations` | [Site](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Site.md) | `/sites` |
+| [OutOfOfficePeriod](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/OutOfOfficePeriod.md) | `/out_of_office_periods` | [SkillPool](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/SkillPool.md) | `/skill_pools` |
+| [Person](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Person.md) | `/people` | [Task](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Task.md) | `/tasks` |
+| [Problem](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Problem.md) | `/problems` | [Team](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Team.md) | `/teams` |
+| [Product](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Product.md) | `/products` | [TimeAllocation](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/TimeAllocation.md) | `/time_allocations` |
+| [ProductCategory](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ProductCategory.md) | `/product_categories` | [UiExtension](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/UiExtension.md) | `/ui_extensions` |
+| [Project](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Project.md) | `/projects` | [Workflow](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Workflow.md) | `/workflows` |
+| [ProjectTask](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/ProjectTask.md) | `/project_tasks` | [WorkflowTemplate](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/WorkflowTemplate.md) | `/workflow_templates` |
+| [Release](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/Release.md) | `/releases` | | |
+<!-- api-reference:end -->
 
 ## Change Log
 
@@ -90,7 +124,7 @@ continues to work unchanged, but only one authentication method may be used per 
     # Create a new Configuration Item
     # creating without specifying the label, takes the last ci of the product and increments the label
     # example: "wdc-02" -> "wdc-03"
-    data = {"name": "New CI", "type": "software", "status": "in_production", "product_id": "<product_id>"}
+    data = {"name": "New CI", "status": "in_production", "product_id": "<product_id>"}
     new_ci = ConfigurationItem.create(x_api_helper, data)
     print(new_ci)
 
@@ -118,26 +152,26 @@ continues to work unchanged, but only one authentication method may be used per 
 ```python
     from xurrent.people import Person
 
-    people = Person.get_by_id(x_api_helper, <id>)
+    person = Person.get_by_id(x_api_helper, <id>)
 
     api_user = Person.get_me(x_api_helper)
 
-    # get all people with a specific subject
-    people = Person.get_people(x_api_helper,queryfilter={
-    "name": "Werner"
+    # get all people with a specific name
+    people = Person.get_people(x_api_helper, queryfilter={
+        "name": "Werner"
     })
 
     # enable
-    people.enable()
+    person.enable()
 
     #disable
-    people.disable()
+    person.disable()
     #archive
-    people.archive()
+    person.archive()
     #trash
-    people.trash()
+    person.trash()
     #restore
-    people.restore()
+    person.restore()
 ```
 
 #### Requests
@@ -148,8 +182,8 @@ continues to work unchanged, but only one authentication method may be used per 
     request = Request.get_by_id(x_api_helper, <id>)
 
     # get all requests with a specific subject
-    requests = Request.get_request(x_api_helper,queryfilter={
-    "subject": "Example Subject"
+    requests = Request.get_requests(x_api_helper, queryfilter={
+        "subject": "Example Subject"
     })
 
     # close
@@ -170,7 +204,7 @@ continues to work unchanged, but only one authentication method may be used per 
 ##### Request Configuration Items
 
 ```python
-    from src.xurrent.requests import Request
+    from xurrent.requests import Request
 
     # Get Configuration Items for a Request
     request_id = <request_id>
@@ -221,12 +255,15 @@ continues to work unchanged, but only one authentication method may be used per 
 ```python
     from xurrent.requests import Request
     
+    from xurrent.requests import PredefinedNotesFilter
+
     request = Request.get_by_id(x_api_helper, <id>)
 
-    request_note = request.get_by_id(x_api_helper, <id>)
+    # a note of the request by its ID
+    request_note = request.get_note_by_id(<note_id>)
 
-    # get all request notes with a specific subject
-    request_notes = request.get_notes(x_api_helper, predefinedFilter="public")
+    # all public notes of the request
+    request_notes = request.get_notes(predefinedFilter=PredefinedNotesFilter.public)
 
     # only the newest note (one API call with per_page=1); the same for tasks, problems, project tasks, ...
     newest = request.get_notes(sort="-created_at", max_results=1)
@@ -246,14 +283,14 @@ continues to work unchanged, but only one authentication method may be used per 
     task = Task.get_by_id(x_api_helper, <id>)
 
     # get all tasks with a specific subject
-    tasks = Task.get_task(x_api_helper,queryfilter={
-    "subject": "Example Subject"
+    tasks = Task.get_tasks(x_api_helper, queryfilter={
+        "subject": "Example Subject"
     })
 
-    # get workflow of task (use expand: True to get the full workflow object)
+    # get workflow of task (use expand=True to read the full workflow from the API)
     workflow = task.get_workflow(expand=True)
-    # or statically
-    workflow = Task.get_workflow_by_template_id(x_api_helper, <id>, expand=True)
+    # or statically, by the ID of the task
+    workflow = Task.get_workflow_of_task(x_api_helper, <task_id>, expand=True)
 
     # close
     task.close()
@@ -284,12 +321,12 @@ continues to work unchanged, but only one authentication method may be used per 
 #### Teams
 
 ```python
-    from xurrent.teams import Team
+    from xurrent.teams import Team, TeamPredefinedFilter
 
     team = Team.get_by_id(x_api_helper, <id>)
 
-    # get all teams with a specific subject
-    teams = Team.get_team(x_api_helper,predifinedFilter="enabled")
+    # get all enabled teams
+    teams = Team.get_teams(x_api_helper, predefinedFilter=TeamPredefinedFilter.enabled)
 
     # enable
     team.enable()
@@ -313,7 +350,7 @@ continues to work unchanged, but only one authentication method may be used per 
     workflow = Workflow.get_by_id(x_api_helper, <id>)
 
     #close
-    workflow.close() # completion reason: completed, note: closed
+    workflow.close() # completion reason: complete, note: "closed."
     # close with completion reason
     workflow.close(completion_reason="withdrawn")
     #close with completion reason and note
@@ -344,8 +381,8 @@ List calls follow the pagination of the API and return all records by default. P
     import csv
     import io
 
-    #Request a bulk export of "people"
-    csvdata = x_api_helper.bulk_export("people")
+    #Request a bulk export of "people" (returns the file as bytes)
+    csvdata = x_api_helper.bulk_export("people").decode("utf-8-sig")
 
     #Iterate fetched export rows with the csv library, where row 1 defines the column names
     for row in csv.DictReader(io.StringIO(csvdata)):

@@ -42,6 +42,10 @@ class TimeAllocationDescriptionCategory(str, Enum):
 
 
 class TimeAllocation(JsonSerializableDict):
+    """
+    A time allocation: an activity (e.g. a meeting or training) for which people register time
+    spent.
+    """
     # https://developer.xurrent.com/v1/time_allocations/
     __resourceUrl__ = 'time_allocations'
 
