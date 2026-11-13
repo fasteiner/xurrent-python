@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- CI: a push releases only when it changes the package (`src/`), checked across all commits of the push. Changes to tests, docs, CI or the README alone no longer create a tag and a new version in `CHANGELOG.md` and `pyproject.toml` without a release (as the stray tag `0.15.1` did).
+- CI: the Python 3.9 tests run on Ubuntu 24.04, because `ubuntu-latest` (Ubuntu 26.04) no longer provides Python 3.9.
+
 ## [0.16.0] - 2026-11-11
 
 ### Added
