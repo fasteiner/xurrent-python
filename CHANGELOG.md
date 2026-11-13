@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- CI: a push releases only when it changes the package (`src/`), checked across all commits of the push. Changes to tests, docs, CI or the README alone no longer create a tag and a new version in `CHANGELOG.md` and `pyproject.toml` without a release (as the stray tag `0.15.1` did).
+- CI: the Python 3.9 tests run on Ubuntu 24.04, because `ubuntu-latest` (Ubuntu 26.04) no longer provides Python 3.9.
+
+## [0.16.0] - 2026-11-11
+
 ### Added
 
 - Docs: API reference with a page per class: its fields, enums, methods with the API endpoint each one calls, and cross references between the classes. It is in [`docs/api/`](https://github.com/fasteiner/xurrent-python/blob/main/docs/api/README.md) and in the [wiki](https://github.com/fasteiner/xurrent-python/wiki), and the README links to every class.
@@ -393,6 +400,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
 
+[0.16.0]: https://github.com/fasteiner/xurrent-python/compare/v0.14.0...v0.16.0
 [0.14.0]: https://github.com/fasteiner/xurrent-python/compare/v0.11.0...v0.14.0
 [0.11.0]: https://github.com/fasteiner/xurrent-python/compare/v0.10.0...v0.11.0
 

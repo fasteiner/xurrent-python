@@ -95,6 +95,14 @@ Domain classes cross-reference each other (e.g., `Request` embeds `Person`, `Tea
 
 When adding a new domain class, add corresponding unit tests under `tests/unit_tests/`, give the class a one-line docstring and regenerate the API reference (`python docs/generate_api_docs.py`).
 
+## Releases
+
+`Dev` publishes previews, `main` publishes to PyPI (`.github/workflows/release.yml`, no manual approval). A push
+releases only when it changes something under `src/`; GitVersion calculates the version, and the `[Unreleased]`
+section of the CHANGELOG becomes that version and the text of the GitHub release. Merge `Dev` into `main` with a
+merge commit (not rebase), and afterwards bring `main` back into `Dev` before adding new CHANGELOG entries.
+Commit messages and PR titles must not contain `major` or `breaking` (GitVersion bumps the major version on them).
+
 ## Changelog
 
 All changes must be documented in [CHANGELOG.md](CHANGELOG.md) under the `[Unreleased]` section, following the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Use the appropriate subsection (`Added`, `Changed`, `Fixed`, `Removed`) and prefix each entry with the affected module or component (e.g., `Core:`, `Requests:`).
