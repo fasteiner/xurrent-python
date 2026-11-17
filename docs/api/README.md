@@ -95,6 +95,8 @@ Core: [XurrentApiHelper](XurrentApiHelper.md) (connection, `api_call`, `search`,
 | [ProjectCategory](Project.md#projectcategory) | `small`, `medium`, `large` | Project |
 | [ProjectPredefinedFilter](Project.md#projectpredefinedfilter) | `completed`, `open`, `managed_by_me` | Project |
 | [ProjectStatus](Project.md#projectstatus) | `registered`, `in_progress`, `progress_halted`, `completed` | Project |
+| [ProjectTaskApprovalStatus](ProjectTask.md#projecttaskapprovalstatus) | `registered`, `assigned`, `rejected`, `approved`, `canceled` | ProjectTask |
+| [ProjectTaskAssignmentStatus](ProjectTask.md#projecttaskassignmentstatus) | `registered`, `assigned`, `accepted`, `in_progress`, `waiting_for`, `failed`, `rejected`, `completed`, `approved`, `canceled` | ProjectTask |
 | [ProjectTaskCategory](ProjectTask.md#projecttaskcategory) | `activity`, `approval`, `milestone` | ProjectTask |
 | [ProjectTaskPredefinedFilter](ProjectTask.md#projecttaskpredefinedfilter) | `finished`, `open`, `managed_by_me`, `assigned_to_me`, `open_to_me` | ProjectTask |
 | [ProjectTaskStatus](ProjectTask.md#projecttaskstatus) | `registered`, `assigned`, `accepted`, `in_progress`, `waiting_for`, `failed`, `rejected`, `completed`, `approved`, `canceled` | ProjectTask |
