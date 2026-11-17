@@ -21,6 +21,7 @@ The named arguments of the constructor. Every other field of the API response is
 | `project` |  | `None` |  |
 | `manager` |  | `None` | [Person](Person.md) |
 | `team` |  | `None` | [Team](Team.md) |
+| `required_approvals` | `Optional[int]` | `None` |  |
 
 ## Class methods
 
@@ -42,6 +43,21 @@ ProjectTask.get_project_tasks(connection_object: XurrentApiHelper, predefinedFil
 
 API: `GET /project_tasks` · Enums: [ProjectTaskPredefinedFilter](#projecttaskpredefinedfilter)
 
+### get_open_approvals_assigned_to_me
+
+```python
+ProjectTask.get_open_approvals_assigned_to_me(connection_object: XurrentApiHelper, max_results: Optional[int] = None) -> List[T]
+```
+
+List the open project tasks with category ``approval`` assigned to the API user
+(GET /project_tasks/open_to_me?category=approval). The API has no ``approval_by_me``
+filter for project tasks as it has for tasks; an approval project task stays open
+until ``required_approvals`` assignees approved, so whether the API user's own approval
+still waits is in ``get_my_approvals()``.
+
+- `max_results`: Return at most this many project tasks (default: all)
+- Returns: List of project tasks
+
 ## Static methods
 
 ### update_by_id
@@ -59,6 +75,53 @@ ProjectTask.update_by_id(connection_object: XurrentApiHelper, id: int, data: dic
 project_task.ref_str() -> str
 ```
 
+
+### get_assignments
+
+```python
+project_task.get_assignments(max_results: Optional[int] = None) -> List[dict]
+```
+
+Retrieve the assignments of the current project task
+(GET /project_tasks/:id/assignments, all pages unless ``max_results``).
+Each assignment has its ``assignee`` (a person reference), its ``status``
+(``ProjectTaskAssignmentStatus``), ``planned_effort``, ``created_at`` and ``updated_at``.
+
+- `max_results`: Return at most this many assignments (default: all)
+- Returns: List of assignments
+
+API: `GET /project_tasks/{id}/assignments`
+
+### get_approvals
+
+```python
+project_task.get_approvals(max_results: Optional[int] = None) -> List[dict]
+```
+
+Retrieve the approvals of the current project task with category ``approval``, as
+``Task.get_approvals`` does for an approval task. Xurrent has no approvals collection
+for project tasks: each assignment is one approver's approval, its ``assignee`` the
+approver and its ``status`` the decision (``ProjectTaskApprovalStatus``;
+``PROJECT_TASK_APPROVAL_PENDING`` still waits). Unknown statuses are passed on as
+they are. Raises ``ValueError`` when the category is known and not ``approval``.
+
+- `max_results`: Return at most this many approvals (default: all)
+- Returns: List of approvals (the assignments)
+
+### get_my_approvals
+
+```python
+project_task.get_my_approvals(person_id: Optional[int] = None) -> List[dict]
+```
+
+Retrieve the approvals of the current approval project task that belong to one person:
+the API user (``connection_object.api_user``) unless ``person_id`` is given. Usually
+one; several when the person was assigned more than once. An empty list: the person is
+no approver. Raises ``ValueError`` when no ``person_id`` is given and the API user is
+not known (``XurrentApiHelper(resolve_user=False)``).
+
+- `person_id`: The person's id (default: the API user's)
+- Returns: List of that person's approvals (assignments)
 
 ### update
 
@@ -125,6 +188,38 @@ Used by: `ProjectTask.get_project_tasks`
 | `completed` |  |
 | `approved` |  |
 | `canceled` |  |
+
+### ProjectTaskAssignmentStatus
+
+The status of one assignment of a project task (GET /project_tasks/:id/assignments).
+
+| Value | Description |
+|---|---|
+| `registered` | Registered |
+| `assigned` | Assigned |
+| `accepted` | Accepted |
+| `in_progress` | In Progress |
+| `waiting_for` | Waiting for… |
+| `failed` | Failed |
+| `rejected` | Rejected |
+| `completed` | Completed |
+| `approved` | Approved |
+| `canceled` | Canceled |
+
+### ProjectTaskApprovalStatus
+
+The status of one approval of a project task with category ``approval``: the statuses an
+approval task's approval has (registered, assigned, rejected, approved, canceled). Xurrent
+has no approvals collection for project tasks: each assignment of an approval project task
+is one approver's approval (see ``ProjectTask.get_approvals``).
+
+| Value | Description |
+|---|---|
+| `registered` | Registered: the approval step has not started yet |
+| `assigned` | Assigned: the approver is asked |
+| `rejected` | Rejected |
+| `approved` | Approved |
+| `canceled` | Canceled: counts for nothing |
 
 ### ProjectTaskCategory
 
