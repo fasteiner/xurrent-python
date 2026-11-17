@@ -147,3 +147,153 @@ def test_add_project_task_note_dict(mock_connection, project_task_instance):
 def test_add_project_task_note_invalid_type(project_task_instance):
     with pytest.raises(TypeError):
         project_task_instance.add_note(42)
+
+
+# ---------------------------------------------------------------- approvals (#50)
+# Xurrent has no approvals collection for project tasks: the assignments of an approval
+# project task (GET /project_tasks/:id/assignments) are its approvals.
+
+from xurrent.project_tasks import (  # noqa: E402
+    PROJECT_TASK_APPROVAL_PENDING,
+    ProjectTaskApprovalStatus,
+    ProjectTaskAssignmentStatus,
+    ProjectTaskCategory,
+)
+
+
+@pytest.fixture
+def approval_project_task(mock_connection):
+    return ProjectTask(
+        connection_object=mock_connection,
+        id=202,
+        subject="Approve the test plan",
+        status="assigned",
+        category="approval",
+        required_approvals=2,
+    )
+
+
+def _assignment(person_id, status, assignment_id):
+    return {
+        "id": assignment_id,
+        "assignee": {"id": person_id, "name": f"Person {person_id}"},
+        "status": status,
+        "planned_effort": 15,
+    }
+
+
+def test_required_approvals_is_kept(approval_project_task, mock_connection):
+    assert approval_project_task.required_approvals == 2
+    task = ProjectTask.from_data(mock_connection, {"id": 3, "category": "activity"})
+    assert task.required_approvals is None
+
+
+def test_get_assignments_reads_all_pages_through_the_helper(mock_connection, project_task_instance):
+    rows = [_assignment(1, "assigned", 1), _assignment(2, "accepted", 2)]
+    mock_connection.api_call.return_value = rows
+    assert project_task_instance.get_assignments() == rows
+    mock_connection.api_call.assert_called_once_with(
+        f"{mock_connection.base_url}/project_tasks/101/assignments", "GET"
+    )
+
+
+def test_get_assignments_with_limit(mock_connection, project_task_instance):
+    mock_connection.api_call.return_value = []
+    project_task_instance.get_assignments(max_results=5)
+    mock_connection.api_call.assert_called_once_with(
+        f"{mock_connection.base_url}/project_tasks/101/assignments", "GET", max_results=5
+    )
+
+
+def test_get_assignments_of_an_unexpected_answer_is_empty(mock_connection, project_task_instance):
+    mock_connection.api_call.return_value = {"message": "odd"}
+    assert project_task_instance.get_assignments() == []
+
+
+def test_get_approvals_are_the_assignments(mock_connection, approval_project_task):
+    rows = [_assignment(1, "approved", 1), _assignment(2, "assigned", 2)]
+    mock_connection.api_call.return_value = rows
+    assert approval_project_task.get_approvals() == rows
+    mock_connection.api_call.assert_called_once_with(
+        f"{mock_connection.base_url}/project_tasks/202/assignments", "GET"
+    )
+
+
+def test_get_approvals_without_a_known_category_reads_too(mock_connection):
+    mock_connection.api_call.return_value = []
+    assert ProjectTask(mock_connection, 9).get_approvals() == []
+    mock_connection.api_call.assert_called_once()
+
+
+def test_get_approvals_of_an_activity_raises(mock_connection, project_task_instance):
+    with pytest.raises(ValueError, match="Only approval project tasks"):
+        project_task_instance.get_approvals()
+    mock_connection.api_call.assert_not_called()
+
+
+def test_get_approvals_propagates_a_refusal(mock_connection, approval_project_task):
+    """401/403 from the API are the helper's HTTPError: passed on, never swallowed."""
+    import requests
+
+    mock_connection.api_call.side_effect = requests.HTTPError("403 Client Error")
+    with pytest.raises(requests.HTTPError):
+        approval_project_task.get_approvals()
+
+
+def test_get_my_approvals_of_the_api_user(mock_connection, approval_project_task):
+    mine = _assignment(1, "approved", 2)
+    mock_connection.api_call.return_value = [_assignment(7, "assigned", 1), mine]
+    assert approval_project_task.get_my_approvals() == [mine]
+
+
+def test_get_my_approvals_of_a_given_person_and_several_entries(
+    mock_connection, approval_project_task
+):
+    rows = [
+        _assignment(7, "approved", 1),
+        _assignment(8, "assigned", 2),
+        _assignment(7, "assigned", 3),
+        {"id": 4, "status": "assigned"},  # no assignee
+        {"id": 5, "assignee": None, "status": "assigned"},
+        "junk",
+    ]
+    mock_connection.api_call.return_value = rows
+    assert [a["id"] for a in approval_project_task.get_my_approvals(person_id=7)] == [1, 3]
+    assert approval_project_task.get_my_approvals(person_id=99) == []
+
+
+def test_get_my_approvals_ignores_a_bool_id(mock_connection, approval_project_task):
+    mock_connection.api_call.return_value = [{"assignee": {"id": True}, "status": "approved"}]
+    assert approval_project_task.get_my_approvals(person_id=1) == []
+
+
+def test_get_my_approvals_without_a_known_user_raises(mock_connection, approval_project_task):
+    mock_connection.api_user = None
+    with pytest.raises(ValueError, match="person_id"):
+        approval_project_task.get_my_approvals()
+    mock_connection.api_call.assert_not_called()
+
+
+def test_get_open_approvals_assigned_to_me(mock_connection):
+    mock_connection.create_filter_string.return_value = "category=approval"
+    mock_connection.api_call.return_value = [{"id": 5, "category": "approval"}]
+    found = ProjectTask.get_open_approvals_assigned_to_me(mock_connection, max_results=20)
+    mock_connection.create_filter_string.assert_called_once_with({"category": "approval"})
+    mock_connection.api_call.assert_called_once_with(
+        f"{mock_connection.base_url}/project_tasks/open_to_me?category=approval",
+        "GET",
+        max_results=20,
+    )
+    assert [t.id for t in found] == [5] and isinstance(found[0], ProjectTask)
+
+
+def test_the_approval_statuses():
+    assert [s.value for s in ProjectTaskApprovalStatus] == [
+        "registered", "assigned", "rejected", "approved", "canceled",
+    ]
+    assert PROJECT_TASK_APPROVAL_PENDING == {"registered", "assigned"}
+    assert str(ProjectTaskApprovalStatus.approved) == "approved"
+    assert {s.value for s in ProjectTaskApprovalStatus} <= {
+        s.value for s in ProjectTaskAssignmentStatus
+    }
+    assert str(ProjectTaskCategory.approval) == "approval"
