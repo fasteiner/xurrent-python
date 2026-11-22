@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.16.1] - 2026-11-22
+## [Unreleased]
 
 ### Added
 
@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Core: Python 3.9 is no longer supported (end of life); the minimum is 3.10. The `requests` floor is now 2.33.0 on every Python version.
+
+### Fixed
+
+- CI: the release workflow detects Python changes since the last release tag, independent of the merge method. After the rebase merge of #51 it had only looked at the last commit (no `.py` file) and tagged `0.16.1` without building, releasing or publishing it; this release replaces it.
 
 ## [0.16.0] - 2026-11-11
 
@@ -404,7 +408,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retry-after: auto retry after 429 status code
 - custom fields conversion (from and to object/dict)
 
-[0.16.1]: https://github.com/fasteiner/xurrent-python/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/fasteiner/xurrent-python/compare/v0.14.0...v0.16.0
 [0.14.0]: https://github.com/fasteiner/xurrent-python/compare/v0.11.0...v0.14.0
 [0.11.0]: https://github.com/fasteiner/xurrent-python/compare/v0.10.0...v0.11.0

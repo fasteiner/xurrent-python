@@ -43,9 +43,24 @@ jobs:
 
       - name: Check for Python file changes
         id: check-python-changes
+        # Diff against the last release tag, not HEAD^: after a rebase merge HEAD^ is only the PR's
+        # second-to-last commit, so .py changes in earlier PR commits were missed (0.16.1 was only tagged).
+        # The last release is the last vX.Y.Z tag (created with the GitHub release); on Dev a preview
+        # vX.Y.Z-preview.N counts too. This works the same for merge, squash and rebase merges.
         run: |
-          git fetch origin main
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            BASE_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' --exclude '*-*' HEAD 2>/dev/null || true)
+          else
+            BASE_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' HEAD 2>/dev/null || true)
+          fi
+
+          if [[ -n "$BASE_TAG" ]]; then
+            echo "Last release tag: $BASE_TAG"
+            CHANGED_FILES=$(git diff --name-only "$BASE_TAG" HEAD)
+          else
+            echo "No release tag found → comparing with the empty tree (everything counts as changed)."
+            CHANGED_FILES=$(git diff --name-only "$(git hash-object -t tree /dev/null)" HEAD)
+          fi
           echo "Changed files: $CHANGED_FILES"
 
           if echo "$CHANGED_FILES" | grep -E '\.py$'; then
@@ -62,7 +77,8 @@ jobs:
           if [[ "${{ env.python_changed }}" == "true" ]]; then
             EFFECTIVE_VERSION="${{ steps.gitversion.outputs.semVer }}"
           else
-            PREV_TAG=$(git describe --tags --abbrev=0)
+            # Stable tags only: a reachable preview tag (X.Y.Z-preview.N) would break the arithmetic below
+            PREV_TAG=$(git describe --tags --abbrev=0 --exclude '*-*')
             echo "Previous tag: $PREV_TAG"
             CLEAN_TAG=${PREV_TAG#v}
 
