@@ -208,10 +208,16 @@ The status of one assignment of a project task (GET /project_tasks/:id/assignmen
 
 ### ProjectTaskApprovalStatus
 
-The status of one approval of a project task with category ``approval``: the statuses an
-approval task's approval has (registered, assigned, rejected, approved, canceled). Xurrent
-has no approvals collection for project tasks: each assignment of an approval project task
-is one approver's approval (see ``ProjectTask.get_approvals``).
+The statuses this SDK reads as an approver's decision on a project task with category
+``approval``. Xurrent has no approvals collection for project tasks: each assignment of an
+approval project task is one approver's approval (see ``ProjectTask.get_approvals``).
+
+What the API documents: an assignment's ``status`` is read-only and one of the ten values
+of ``ProjectTaskAssignmentStatus``, for every category; the documentation does not say
+which of them an approval project task uses. ``required_approvals`` (default 1) is the
+number of assignees who must approve before the project task's status becomes
+``approved``. This enum lists the subset that carries a decision (plus ``registered`` and
+``assigned``, still waiting); any other status is passed on as it is.
 
 | Value | Description |
 |---|---|
