@@ -6,7 +6,7 @@ authors = [
 ]
 description = "A python module to interact with the Xurrent API."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -24,12 +24,9 @@ authors = ["Ing. Fabian Franz Steiner BSc. <f.steiner@techwork.at>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
-# requests 2.33.0 fixes CVE-2026-25645 but needs Python 3.10; on 3.9 the floor is 2.32.4 (CVE-2024-47081).
-requests = [
-    { version = "^2.33.0", python = ">=3.10" },
-    { version = ">=2.32.4,<3.0.0", python = "<3.10" },
-]
+python = ">=3.10"
+# requests 2.33.0 fixes CVE-2026-25645.
+requests = "^2.33.0"
 
 
 [tool.poetry.group.dev.dependencies]

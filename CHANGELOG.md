@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Core: Python 3.15 is supported and tested.
 - ProjectTasks: read the approvals of a project task with category `approval` (#50). Xurrent has no approvals collection for project tasks, so `get_approvals()` reads its assignments (`GET /project_tasks/:id/assignments`, all pages through the core helper; each with its `assignee` and `status`), as `Task.get_approvals()` does for approval tasks; `get_assignments()` reads them for any project task. `get_my_approvals(person_id=None)` returns the API user's own entries (several when assigned more than once), `required_approvals` is a named field, and `get_open_approvals_assigned_to_me()` lists `open_to_me` with `category=approval` (the API has no `approval_by_me` filter for project tasks). New enums `ProjectTaskAssignmentStatus` and `ProjectTaskApprovalStatus` (`registered`, `assigned`, `rejected`, `approved`, `canceled`) and `PROJECT_TASK_APPROVAL_PENDING` (`registered`, `assigned`).
+
+### Removed
+
+- Core: Python 3.9 is no longer supported (end of life); the minimum is 3.10. The `requests` floor is now 2.33.0 on every Python version.
 
 ## [0.16.0] - 2026-11-11
 
